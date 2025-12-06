@@ -10,7 +10,7 @@ const generateToken = (id) => {
 // SIGNUP
 export const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, phone, citizenshipNumber, email, password } = req.body;
+    const { firstName, lastName, phone, citizenshipNumber, email, password, profilePic } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: "Email already registered" });
@@ -23,7 +23,8 @@ export const registerUser = async (req, res) => {
       phone,
       citizenshipNumber,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      profilePic: profilePic || ""
     });
 
     res.json({

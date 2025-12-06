@@ -16,7 +16,7 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg navbar-custom">
       <div className="container">
         <Link to="/" className="navbar-brand d-flex align-items-center">
-          <img src={logo} alt="Himalaya Homes" className="navbar-logo" />
+          <img src={logo} alt="Himalaya Homes" className="navbar-logo" style={{ minHeight: "100px" }} />
           <span className="brand-title">Himalaya Homes</span>
         </Link>
 
@@ -38,24 +38,31 @@ export default function Navbar() {
             <li className="nav-item"><Link className="nav-link" to="/agents">Agents</Link></li>
             <li className="nav-item"><Link className="nav-link" to="/contact">Contact</Link></li>
             <li className="nav-item"><Link className="nav-link" to="/saved">Saved Properties ❤️</Link></li>
-            <li className="nav-item"><Link className="nav-link" to="/my-listings">My Listings</Link></li>
           </ul>
 
-          <div className="d-flex ms-3 align-items-center">
+          <div className="nav-action-bar d-flex align-items-center ms-3">
+            <Link to="/my-listings" className="action-link me-3">My Listings</Link>
+
             {!token ? (
               <>
-                <Link to="/login" className="btn btn-outline-custom me-2">Login</Link>
-                <Link to="/signup" className="btn btn-primary-custom">Sign Up</Link>
+                <Link to="/login" className="action-btn action-outline me-2">Login</Link>
+                <Link to="/signup" className="action-btn action-primary">Sign Up</Link>
               </>
             ) : (
               <>
-                <Link to="/profile">
-                  <img src={profileImg} alt="Profile" className="profile-thumb" />
-                </Link>
-                <button className="btn btn-primary-custom" onClick={handleLogout}>Logout</button>
+                <button className="action-btn action-primary" onClick={handleLogout}>Logout</button>
               </>
             )}
           </div>
+        </div>
+
+        {/* Profile icon positioned separately at the far right */}
+        <div className="navbar-profile d-flex align-items-center">
+          {token && (
+            <Link to="/profile">
+              <img src={profileImg} alt="Profile" className="profile-thumb profile-thumb--large" />
+            </Link>
+          )}
         </div>
       </div>
     </nav>

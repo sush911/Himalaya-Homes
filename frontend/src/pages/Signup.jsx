@@ -53,7 +53,7 @@ export default function Signup() {
             <form onSubmit={handleSubmit}>
               <div className="mb-3 d-flex align-items-center">
                 <div className="avatar-wrap">
-                  <div className="avatar-preview" style={{ backgroundImage: `url(${form.profilePic || "/avatar-placeholder.png"})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                  <div className="avatar-preview" style={{ backgroundImage: `url(${form.profilePic || "/avatar-placeholder.png"})` }} />
                   <div>
                     <label className="form-label mb-1" style={{ fontWeight: 600 }}>Profile Photo</label>
                     <input type="file" accept="image/*" className="form-control form-control-sm" onChange={handleFile} />
