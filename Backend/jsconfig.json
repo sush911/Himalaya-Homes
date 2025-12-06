@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2020",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["server.js", "routes/**/*", "config/**/*", "controllers/**/*", "models/**/*", "middleware/**/*"],
+  "exclude": ["node_modules"]
+}
