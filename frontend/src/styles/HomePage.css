@@ -4,7 +4,7 @@
   --primary-blue: #2B5BBA;
   --dark-blue: #1E3A5F;
   --white: #FFFFFF;
-  --gray-bg: #F5F5F5;
+  --gray: #F5F5F5;
 }
 
 body, html, #root {
@@ -77,6 +77,10 @@ body, html, #root {
   border-radius: 50px;
   min-width: 140px;
 }
+
+.search-input {
+  width: min(560px, 60%);
+}
 .search-bar button {
   border-radius: 50px;
   background-color: var(--primary-blue);
@@ -102,7 +106,7 @@ body, html, #root {
 
 /* Featured Properties */
 .featured-properties {
-  background-color: var(--gray-bg);
+  background-color: var(--gray);
 }
 .property-card {
   border-radius: 15px;

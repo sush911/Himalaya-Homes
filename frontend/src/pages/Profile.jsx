@@ -1,107 +1,69 @@
+// src/pages/Profile.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { getMe, updateProfile } from "../api/auth";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [editableUser, setEditableUser] = useState({
-    phone: "",
-    email: ""
-  });
-
   const token = localStorage.getItem("token");
+  const [user, setUser] = useState(null);
+  const [edit, setEdit] = useState({ email: "", phone: "" });
+  const [loading, setLoading] = useState(false);
 
-  // Fetch user profile
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/user/me", {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then((res) => {
+    if (!token) return;
+    (async () => {
+      try {
+        const res = await getMe(token);
         setUser(res.data);
-        setEditableUser({
-          phone: res.data.phone,
-          email: res.data.email
-        });
-      })
-      .catch((err) => console.log(err));
+        setEdit({ email: res.data.email || "", phone: res.data.phone || "" });
+      } catch (err) {
+        console.error(err);
+      }
+    })();
   }, [token]);
 
-  const handleChange = (e) => {
-    setEditableUser({ ...editableUser, [e.target.name]: e.target.value });
+  const handleChange = (e) => setEdit({ ...edit, [e.target.name]: e.target.value });
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await updateProfile(edit, token);
+      alert("Profile updated");
+    } catch (err) {
+      alert(err?.response?.data?.message || "Update failed");
+    } finally { setLoading(false); }
   };
 
-  const handleSave = () => {
-    axios
-      .put("http://localhost:5000/api/user/update", editableUser, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      .then(() => alert("Profile updated"))
-      .catch((err) => console.log(err));
-  };
-
-  if (!user) return <h3 className="text-center mt-5">Loading...</h3>;
+  if (!user) return <div className="text-center mt-5">Loading...</div>;
 
   return (
-    <div className="container mt-5">
-      <div
-        className="card p-4 shadow"
-        style={{
-          maxWidth: "600px",
-          margin: "0 auto",
-          borderRadius: "12px"
-        }}
-      >
-        <h3 className="text-center mb-3" style={{ color: "var(--dark-blue)" }}>
-          My Profile
-        </h3>
-
-        <div className="d-flex justify-content-center mb-3">
-          <div
-            style={{
-              width: "110px",
-              height: "110px",
-              borderRadius: "50%",
-              backgroundColor: "#ddd",
-              backgroundImage: `url(${user.profilePic})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center"
-            }}
-          />
+    <div className="profile-card">
+      <div className="d-flex gap-4 align-items-center">
+        <img src={user.profilePic || '/assets/default-avatar.png'} alt="avatar" className="profile-avatar" />
+        <div>
+          <h4 className="profile-name">{user.firstName} {user.lastName}</h4>
+          <div className="profile-meta">{user.citizenshipNumber ? `Citizenship: ${user.citizenshipNumber}` : ""}</div>
         </div>
+      </div>
 
-        <h5 className="text-center mb-3">
-          {user.firstName} {user.lastName}
-        </h5>
+      <hr className="divider" />
 
-        <div className="mb-3">
-          <label className="form-label fw-bold">Email</label>
-          <input
-            type="email"
-            name="email"
-            className="form-control"
-            value={editableUser.email}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="mb-3">
+        <label className="form-label">Email</label>
+        <input name="email" className="form-control" value={edit.email} onChange={handleChange} />
+      </div>
 
-        <div className="mb-3">
-          <label className="form-label fw-bold">Phone</label>
-          <input
-            type="text"
-            name="phone"
-            className="form-control"
-            value={editableUser.phone}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="mb-3">
+        <label className="form-label">Phone</label>
+        <input name="phone" className="form-control" value={edit.phone} onChange={handleChange} />
+      </div>
 
-        <button
-          className="btn text-white w-100"
-          onClick={handleSave}
-          style={{ backgroundColor: "var(--primary-blue)" }}
-        >
-          Save Changes
-        </button>
+      <div className="mb-3">
+        <label className="form-label">Citizenship Number (locked)</label>
+        <input className="form-control" value={user.citizenshipNumber || ""} disabled />
+      </div>
+
+      <div className="d-grid">
+        <button className="btn btn-primary-custom" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save changes"}</button>
       </div>
     </div>
   );

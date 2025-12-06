@@ -1,95 +1,110 @@
+// src/pages/Signup.jsx
 import React, { useState } from "react";
 import { registerUser } from "../api/auth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import oImg from "../assets/o.jpg";
+
+/* helper: convert file -> base64 */
+const toBase64 = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = error => reject(error);
+});
 
 export default function Signup() {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    phone: "",
-    citizenshipNumber: "",
-    email: "",
-    password: "",
-    profilePic: ""
+  const [form, setForm] = useState({
+    firstName: "", lastName: "", phone: "", citizenshipNumber: "", email: "", password: "", profilePic: ""
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const base64 = await toBase64(file);
+    setForm({ ...form, profilePic: base64 });
   };
 
-  const handleSignup = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await registerUser(formData);
+      const payload = { ...form };
+      const res = await registerUser(payload);
       localStorage.setItem("token", res.data.token);
       navigate("/");
     } catch (err) {
-      alert(err.response.data.message);
-    }
+      alert(err?.response?.data?.message || "Signup failed");
+    } finally { setLoading(false); }
   };
 
   return (
-    <div className="container-fluid p-0" style={{ minHeight: "100vh" }}>
-      <div className="row g-0">
+    <div className="auth-full">
+      <div className="row g-0 w-100">
+        {/* Left - Card */}
+        <div className="col-md-5 auth-card d-flex align-items-center justify-content-center">
+          <div className="card-auth">
+            <h3 className="auth-heading">Create an account</h3>
+            <div className="auth-sub">Set up your account to list properties, save favorites and contact owners.</div>
 
-        {/* LEFT SIDE IMAGE */}
-        <div className="col-md-7 d-none d-md-block">
-          <img src={oImg} alt="image" className="w-100 h-100" style={{ objectFit: "cover" }} />
-        </div>
-
-        {/* RIGHT FORM */}
-        <div className="col-md-5 d-flex align-items-center justify-content-center px-4">
-          <div className="card shadow p-4" style={{ width: "100%", maxWidth: "500px", borderRadius: "12px" }}>
-            <h3 className="fw-bold text-center mb-4" style={{ color: "var(--dark-blue)" }}>Create Account</h3>
-
-            <form onSubmit={handleSignup}>
-              
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">First Name</label>
-                  <input type="text" name="firstName" className="form-control" onChange={handleChange} required />
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3 d-flex align-items-center">
+                <div className="avatar-wrap">
+                  <div className="avatar-preview" style={{ backgroundImage: `url(${form.profilePic || "/avatar-placeholder.png"})`, backgroundSize: "cover", backgroundPosition: "center" }} />
+                  <div>
+                    <label className="form-label mb-1" style={{ fontWeight: 600 }}>Profile Photo</label>
+                    <input type="file" accept="image/*" className="form-control form-control-sm" onChange={handleFile} />
+                  </div>
                 </div>
+              </div>
 
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">Last Name</label>
-                  <input type="text" name="lastName" className="form-control" onChange={handleChange} required />
+              <div className="row">
+                <div className="col-6 mb-3">
+                  <label className="form-label">First name</label>
+                  <input name="firstName" value={form.firstName} onChange={handleChange} required className="form-control" />
+                </div>
+                <div className="col-6 mb-3">
+                  <label className="form-label">Last name</label>
+                  <input name="lastName" value={form.lastName} onChange={handleChange} required className="form-control" />
                 </div>
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Phone Number</label>
-                <input type="text" name="phone" className="form-control" onChange={handleChange} required />
+                <label className="form-label">Phone</label>
+                <input name="phone" value={form.phone} onChange={handleChange} required className="form-control" />
               </div>
 
               <div className="mb-3">
                 <label className="form-label">Citizenship Number</label>
-                <input type="text" name="citizenshipNumber" className="form-control" onChange={handleChange} required />
+                <input name="citizenshipNumber" value={form.citizenshipNumber} onChange={handleChange} required className="form-control" />
               </div>
 
               <div className="mb-3">
-                <label className="form-label">Email Address</label>
-                <input type="email" name="email" className="form-control" onChange={handleChange} required />
+                <label className="form-label">Email</label>
+                <input name="email" value={form.email} onChange={handleChange} required type="email" className="form-control" />
               </div>
 
               <div className="mb-3">
                 <label className="form-label">Password</label>
-                <input type="password" name="password" className="form-control" onChange={handleChange} required />
+                <input name="password" value={form.password} onChange={handleChange} required type="password" className="form-control" />
               </div>
 
-              <button type="submit" className="btn w-100 text-white" style={{ backgroundColor: "var(--primary-blue)" }}>
-                Sign Up
-              </button>
+              <div className="d-grid">
+                <button disabled={loading} className="btn btn-primary-custom">{loading ? "Creating..." : "Create account"}</button>
+              </div>
 
-              <p className="text-center mt-3">
-                Already have an account? <a href="/login" style={{ color: "var(--primary-blue)" }}>Login</a>
-              </p>
+              <div className="text-center mt-3">
+                <small className="text-muted">Already have an account? <Link to="/login" className="link-primary">Login</Link></small>
+              </div>
             </form>
           </div>
         </div>
 
+        {/* Right - Image */}
+        <div className="col-md-7 auth-image" style={{ backgroundImage: `url(${oImg})` }} />
       </div>
     </div>
   );
