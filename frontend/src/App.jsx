@@ -4,7 +4,7 @@ import Navbar from "./components/Navbar";
 import Homepage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Profile from "./pages/Profile";
+import Profile from "./pages/profile";
 import ProtectedRoute from "./ProtectedRoute";
 
 export default function App() {
