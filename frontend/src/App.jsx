@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/navbar";
+import Navbar from "./components/Navbar";
 import Homepage from "./pages/HomePage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -16,11 +16,11 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/buy" element={<div style={{ padding: 30 }}>Buy Page Coming Soon</div>} />
-        <Route path="/rent" element={<div style={{ padding: 30 }}>Rent Page Coming Soon</div>} />
-        <Route path="/sell" element={<div style={{ padding: 30 }}>Sell Page Coming Soon</div>} />
-        <Route path="/agents" element={<div style={{ padding: 30 }}>Agents Page Coming Soon</div>} />
-        <Route path="/contact" element={<div style={{ padding: 30 }}>Contact Page Coming Soon</div>} />
+        <Route path="/buy" element={<div className="coming-soon-container"><h2>Buy Page Coming Soon</h2></div>} />
+        <Route path="/rent" element={<div className="coming-soon-container"><h2>Rent Page Coming Soon</h2></div>} />
+        <Route path="/sell" element={<div className="coming-soon-container"><h2>Sell Page Coming Soon</h2></div>} />
+        <Route path="/agents" element={<div className="coming-soon-container"><h2>Agents Page Coming Soon</h2></div>} />
+        <Route path="/contact" element={<div className="coming-soon-container"><h2>Contact Page Coming Soon</h2></div>} />
       </Routes>
     </BrowserRouter>
   );

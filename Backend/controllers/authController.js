@@ -10,12 +10,18 @@ const generateToken = (id) => {
 // SIGNUP
 export const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, phone, citizenshipNumber, email, password, profilePic } = req.body;
+    const { firstName, lastName, phone, citizenshipNumber, email, password } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Handle profile picture from multer
+    let profilePic = "";
+    if (req.file && req.file.filename) {
+      profilePic = `/uploads/${req.file.filename}`;
+    }
 
     const user = await User.create({
       firstName,
@@ -24,7 +30,7 @@ export const registerUser = async (req, res) => {
       citizenshipNumber,
       email,
       password: hashedPassword,
-      profilePic: profilePic || ""
+      profilePic
     });
 
     res.json({
@@ -58,4 +64,9 @@ export const loginUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+// GET CURRENT USER
+export const getMe = async (req, res) => {
+  res.json(req.user);
 };

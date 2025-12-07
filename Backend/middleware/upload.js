@@ -17,10 +17,10 @@ const storage = multer.diskStorage({
 // file filter (image only)
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
-  if ([".jpg", ".jpeg", ".png"].includes(ext)) {
+  if ([".jpg", ".jpeg", ".png", ".webp"].includes(ext)) {
     cb(null, true);
   } else {
-    cb(new Error("Only JPG, JPEG, PNG allowed"), false);
+    cb(new Error("Only JPG, JPEG, PNG, and WebP allowed"), false);
   }
 };
 

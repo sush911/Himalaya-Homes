@@ -1,9 +1,5 @@
 import User from "../models/User.js";
 
-export const getProfile = async (req, res) => {
-  res.json(req.user);
-};
-
 export const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
