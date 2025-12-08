@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { loginUser } from "../api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import oImg from "../assets/o.jpg";
-import googleIcon from "../assets/google.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -202,59 +201,6 @@ export default function Login() {
           text-decoration: none;
         }
         
-        .divider-container {
-          margin-top: 40px;
-          text-align: center;
-        }
-        
-        .divider-text {
-          position: relative;
-          font-size: 14px;
-          color: #94a3b8;
-          font-weight: 500;
-          margin-bottom: 24px;
-          display: flex;
-          align-items: center;
-          gap: 20px;
-        }
-        
-        .divider-text::before,
-        .divider-text::after {
-          content: '';
-          flex: 1;
-          height: 1px;
-          background: #e2e8f0;
-        }
-        
-        .btn-google {
-          width: 100%;
-          height: 56px;
-          border: 2px solid #e2e8f0;
-          border-radius: 14px;
-          background: #ffffff;
-          color: #475569;
-          font-size: 16px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.25s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 14px;
-        }
-        
-        .btn-google:hover {
-          background: #f8fafc;
-          border-color: #cbd5e1;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-        }
-        
-        .google-icon {
-          width: 22px;
-          height: 22px;
-        }
-        
         .auth-right {
           flex: 0 0 50%;
           position: relative;
@@ -381,14 +327,6 @@ export default function Login() {
                   <Link to="/forgot" className="link-primary">Forgot password?</Link>
                   <Link to="/signup" className="link-primary">Create account</Link>
                 </div>
-
-                <div className="divider-container">
-                  <div className="divider-text">or continue with</div>
-                  <button type="button" className="btn-google">
-                    <img src={googleIcon} alt="Google" className="google-icon" />
-                    <span>Login with Google (soon)</span>
-                  </button>
-                </div>
               </form>
             </div>
           </div>
@@ -405,3 +343,4 @@ export default function Login() {
     </>
   );
 }
+
