@@ -1,14 +1,32 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import profileImg from "../assets/profile.png";
+import { getMe } from "../api/auth";
 
 export default function Navbar() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (!token) {
+      setIsAdmin(false);
+      return;
+    }
+    (async () => {
+      try {
+        const res = await getMe(token);
+        setIsAdmin(res.data.role === "admin");
+      } catch (err) {
+        setIsAdmin(false);
+      }
+    })();
+  }, [token]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    setIsAdmin(false);
     navigate("/");
   };
 
@@ -81,6 +99,13 @@ export default function Navbar() {
                 Saved Properties ❤️
               </Link>
             </li>
+            {isAdmin && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/admin" style={navTextStyle}>
+                  Admin Panel 🔧
+                </Link>
+              </li>
+            )}
           </ul>
 
           <div className="nav-action-bar d-flex align-items-center ms-3">
@@ -139,5 +164,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
-

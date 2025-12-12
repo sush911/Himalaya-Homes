@@ -4,7 +4,7 @@ import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPhone, FaEnvelope, Fa
 
 const Footer = () => {
   return (
-    <footer className="footer">
+    <footer className="footer" style={{ backgroundColor: "#1a1a2e", color: "#fff", padding: "3rem 0 1rem", marginTop: "auto" }}>
       <div className="container">
         <div className="row">
           <div className="col-md-4 mb-4">
@@ -21,38 +21,41 @@ const Footer = () => {
           <div className="col-md-2 mb-4">
             <h6 className="mb-3">Quick Links</h6>
             <ul className="list-unstyled">
-              <li className="mb-2"><Link to="/">Home</Link></li>
-              <li className="mb-2"><Link to="/properties?type=sale">Buy</Link></li>
-              <li className="mb-2"><Link to="/properties?type=rent">Rent</Link></li>
-              <li className="mb-2"><Link to="/sell">Sell</Link></li>
-              <li className="mb-2"><Link to="/agents">Agents</Link></li>
+              <li className="mb-2"><Link to="/" style={{ color: "#fff", textDecoration: "none" }}>Home</Link></li>
+              <li className="mb-2"><Link to="/buy" style={{ color: "#fff", textDecoration: "none" }}>Buy</Link></li>
+              <li className="mb-2"><Link to="/rent" style={{ color: "#fff", textDecoration: "none" }}>Rent</Link></li>
+              <li className="mb-2"><Link to="/sell" style={{ color: "#fff", textDecoration: "none" }}>Sell</Link></li>
+              <li className="mb-2"><Link to="/agents" style={{ color: "#fff", textDecoration: "none" }}>Agents</Link></li>
             </ul>
           </div>
           
           <div className="col-md-3 mb-4">
             <h6 className="mb-3">Company</h6>
             <ul className="list-unstyled">
-              <li className="mb-2"><Link to="/about">About Us</Link></li>
-              <li className="mb-2"><Link to="/contact">Contact</Link></li>
-              <li className="mb-2"><Link to="/privacy">Privacy Policy</Link></li>
-              <li className="mb-2"><Link to="/terms">Terms of Service</Link></li>
+              <li className="mb-2"><Link to="/contact" style={{ color: "#fff", textDecoration: "none" }}>Contact</Link></li>
+              <li className="mb-2"><Link to="/privacy" style={{ color: "#fff", textDecoration: "none" }}>Privacy Policy</Link></li>
+              <li className="mb-2"><Link to="/terms" style={{ color: "#fff", textDecoration: "none" }}>Terms of Service</Link></li>
             </ul>
           </div>
           
           <div className="col-md-3 mb-4">
             <h6 className="mb-3">Contact Info</h6>
             <ul className="list-unstyled">
-              <li className="mb-2">
+              <li className="mb-2" style={{ color: "#fff" }}>
                 <FaMapMarkerAlt className="me-2" />
-                Kathmandu, Nepal
+                Ward no 2 Thamel, Kathmandu
               </li>
-              <li className="mb-2">
+              <li className="mb-2" style={{ color: "#fff" }}>
                 <FaPhone className="me-2" />
-                +977 123 456 7890
+                908821321323
               </li>
-              <li className="mb-2">
+              <li className="mb-2" style={{ color: "#fff" }}>
+                <FaPhone className="me-2" />
+                9821838123
+              </li>
+              <li className="mb-2" style={{ color: "#fff" }}>
                 <FaEnvelope className="me-2" />
-                info@himalayahomes.com
+                himalayahomes@gmail.com
               </li>
             </ul>
           </div>

@@ -20,6 +20,9 @@ const userSchema = new mongoose.Schema(
       default: "user",
     },
 
+    favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Property" }],
+    myListings: [{ type: mongoose.Schema.Types.ObjectId, ref: "Property" }],
+
     // Forgot Password Fields
     resetCode: { type: String, default: null },
     resetCodeExpiry: { type: Date, default: null }
