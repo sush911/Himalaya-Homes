@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getAllProperties, deleteProperty } from "../api/property";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { Button } from "react-bootstrap";
+import AdminLayout from "../components/AdminLayout";
 
 const AdminProperties = () => {
   const token = localStorage.getItem("token");
@@ -37,14 +38,9 @@ const AdminProperties = () => {
   };
 
   return (
-    <div className="container py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>All Properties</h2>
-        <Link to="/admin" className="btn btn-outline-primary">
-          Back to Requests
-        </Link>
-      </div>
-
+    <AdminLayout title={"All Properties"} controls={(
+      <NavLink to="/admin" className="btn btn-outline-primary">Back to Requests</NavLink>
+    )}>
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border" role="status">
@@ -57,7 +53,7 @@ const AdminProperties = () => {
         <div className="row g-3">
           {properties.map((prop) => (
             <div className="col-md-6" key={prop._id}>
-              <div className="card">
+              <div className="card admin-card">
                 <div className="card-body">
                   <h5 className="card-title">{prop.title}</h5>
                   <p className="mb-2">
@@ -71,10 +67,24 @@ const AdminProperties = () => {
                       Posted by: {prop.postedBy.firstName} {prop.postedBy.lastName} ({prop.postedBy.email})
                     </p>
                   )}
+                  {prop.reports && prop.reports.length > 0 && (
+                    <div className="mb-2">
+                      <strong>Reports:</strong>
+                      <ul className="list-unstyled small mt-2">
+                        {prop.reports.map((r) => (
+                          <li key={r._id} className="mb-1">
+                            <span className="badge bg-warning text-dark me-2">{r.reason}</span>
+                            {r.user ? `${r.user.firstName} ${r.user.lastName} (${r.user.email})` : "Unknown user"}
+                            <span className="text-muted ms-2">{new Date(r.createdAt).toLocaleString()}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="d-flex gap-2">
-                    <Link to={`/property/${prop._id}`} className="btn btn-sm btn-outline-primary">
+                    <NavLink to={`/property/${prop._id}`} className="btn btn-sm btn-outline-primary">
                       View
-                    </Link>
+                    </NavLink>
                     <Button variant="danger" size="sm" onClick={() => handleDelete(prop._id)}>
                       Delete
                     </Button>
@@ -85,7 +95,7 @@ const AdminProperties = () => {
           ))}
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -29,9 +29,7 @@ const PropertyDetail = () => {
         if (res.data.media?.propertyPhotos?.length) {
           images.push(...res.data.media.propertyPhotos.map(url => ({ url, type: "property" })));
         }
-        if (res.data.media?.lalpurjaPhotos?.length) {
-          images.push(...res.data.media.lalpurjaPhotos.map(url => ({ url, type: "lalpurja" })));
-        }
+        // Do not include Lalpurja photos in public gallery (admin-only)
         if (res.data.media?.roadPhotos?.length) {
           images.push(...res.data.media.roadPhotos.map(url => ({ url, type: "road" })));
         }
@@ -277,28 +275,7 @@ const PropertyDetail = () => {
                   </div>
                 )}
 
-                {/* Lalpurja Photos */}
-                {property.media.lalpurjaPhotos?.length > 0 && (
-                  <div className="mb-4">
-                    <h6>Lalpurja Photos ({property.media.lalpurjaPhotos.length})</h6>
-                    <div className="row g-2">
-                      {property.media.lalpurjaPhotos.map((url, idx) => (
-                        <div key={idx} className="col-md-3">
-                          <img
-                            src={url}
-                            alt={`Lalpurja ${idx + 1}`}
-                            className="img-fluid rounded"
-                            style={{ height: "150px", objectFit: "cover", width: "100%", cursor: "pointer" }}
-                            onClick={() => {
-                              const startIdx = galleryImages.findIndex(img => img.url === url);
-                              openGallery(startIdx >= 0 ? startIdx : 0);
-                            }}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                {/* Lalpurja Photos are intentionally hidden from public property detail pages. Admin panel shows them. */}
 
                 {/* Road Photos */}
                 {property.media.roadPhotos?.length > 0 && (

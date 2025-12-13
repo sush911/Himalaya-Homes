@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/navbar";
-import Homepage from "./pages/HomePage";
+import Navbar from "./components/Navbar";
+// Use safer new homepage while original is being cleaned
+import Homepage from "./pages/HomePageNew";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
@@ -14,8 +15,10 @@ import Saved from "./pages/Saved";
 import AdminPanel from "./pages/AdminPanel";
 import AdminContactMessages from "./pages/AdminContactMessages";
 import AdminProperties from "./pages/AdminProperties";
+import AdminAgents from "./pages/AdminAgents";
 import PropertyDetail from "./pages/PropertyDetail";
 import Contact from "./pages/Contact";
+import Agents from "./pages/Agents";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
@@ -41,7 +44,8 @@ export default function App() {
             <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
             <Route path="/admin/contact" element={<AdminRoute><AdminContactMessages /></AdminRoute>} />
             <Route path="/admin/properties" element={<AdminRoute><AdminProperties /></AdminRoute>} />
-            <Route path="/agents" element={<div className="coming-soon-container"><h2>Agents Page Coming Soon</h2></div>} />
+            <Route path="/admin/agents" element={<AdminRoute><AdminAgents /></AdminRoute>} />
+            <Route path="/agents" element={<Agents />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>

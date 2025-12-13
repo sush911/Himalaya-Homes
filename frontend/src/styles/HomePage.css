@@ -138,7 +138,8 @@ body, html, #root {
 
 /* Footer */
 .footer {
-  background-color: var(--dark-blue);
+  background-color: transparent;
+  color: #333;
 }
 
 /* Responsive */

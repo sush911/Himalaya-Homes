@@ -6,6 +6,7 @@ import express from "express";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import propertyRoutes from "./routes/propertyRoutes.js";
+import agentRoutes from "./routes/agentRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import cors from "cors";
 
@@ -22,6 +23,7 @@ app.use('/uploads', express.static('uploads'));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/properties", propertyRoutes);
+app.use("/api/agents", agentRoutes);
 app.use("/api/contact", contactRoutes);
 
 const PORT = process.env.PORT || 5000;

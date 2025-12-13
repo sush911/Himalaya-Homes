@@ -764,7 +764,17 @@ export const listProperties = async (req, res) => {
 
 export const getAllProperties = async (req, res) => {
   try {
-    const properties = await Property.find().populate("postedBy", "firstName lastName email").sort({ createdAt: -1 });
+    // Ensure reported properties are shown first for admin
+    const properties = await Property.aggregate([
+      { $addFields: { reportsCount: { $size: { $ifNull: ["$reports", []] } } } },
+      { $sort: { reportsCount: -1, createdAt: -1 } },
+    ]);
+
+    // populate postedBy and report users
+    await Property.populate(properties, [
+      { path: "postedBy", select: "firstName lastName email" },
+      { path: "reports.user", select: "firstName lastName email" },
+    ]);
     res.json(properties);
   } catch (err) {
     res.status(400).json({ message: err.message || "Failed to fetch properties" });

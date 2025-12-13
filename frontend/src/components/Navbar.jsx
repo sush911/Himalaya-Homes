@@ -39,19 +39,9 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-custom">
       <div className="container">
-        <Link
-          to="/"
-          className="navbar-brand d-flex align-items-center"
-          style={brandTextStyle}
-        >
-          <img
-            src={logo}
-            alt="Himalaya Homes"
-            className="navbar-logo"
-            style={{ minHeight: "100px" }}
-          />
-          <span className="brand-title">Himalaya Homes</span>
-        </Link>
+          <Link to="/" className="navbar-brand d-flex align-items-center" style={brandTextStyle}>
+            <img src={logo} alt="Himalaya Homes" className="navbar-logo" style={{ minHeight: "100px" }} />
+          </Link>
 
         <button
           className="navbar-toggler"
@@ -63,7 +53,7 @@ export default function Navbar() {
         </button>
 
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto mb-2 mb-lg-0 d-flex align-items-center">
+          <ul className="navbar-nav mb-2 mb-lg-0 d-flex align-items-center">
             <li className="nav-item">
               <Link className="nav-link" to="/" style={navTextStyle}>
                 Home
@@ -108,7 +98,7 @@ export default function Navbar() {
             )}
           </ul>
 
-          <div className="nav-action-bar d-flex align-items-center ms-3">
+          <div className="nav-action-bar d-flex align-items-center">
             <Link
               to="/my-listings"
               className="action-link me-3"

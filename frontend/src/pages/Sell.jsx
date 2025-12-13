@@ -11,7 +11,7 @@ const listingTypes = [
 
 // File size limits (in bytes)
 const MAX_PHOTO_SIZE = 50 * 1024 * 1024; // 50 MB
-const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500 MB (500 MB)
+const MAX_VIDEO_SIZE = 500 * 1024 * 1024; // 500 MB
 
 const formatFileSize = (bytes) => {
   if (bytes >= 1024 * 1024 * 1024) {
@@ -32,14 +32,12 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || []);
     
-    // Validate file count
     if (maxCount && files.length > maxCount) {
       alert(`Maximum ${maxCount} file(s) allowed for ${label}`);
       e.target.value = "";
       return;
     }
 
-    // Validate file sizes
     const oversizedFiles = files.filter(file => file.size > fileSizeLimit);
     if (oversizedFiles.length > 0) {
       const fileNames = oversizedFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(", ");
@@ -52,21 +50,21 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
   };
 
   return (
-    <div className="mb-3">
-      <label className="form-label fw-semibold">
-        {label} {maxCount && `(max ${maxCount})`}
-      </label>
+    <div className="upload-box">
+      <div className="upload-icon-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="upload-icon">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </div>
+      <div className="upload-label">{label} {maxCount && `(${maxCount} max)`}</div>
+      <div className="upload-helper">Click or drag file to this area to upload</div>
       <input
-        className="form-control"
         type="file"
         accept={accept}
         multiple={multiple}
         onChange={handleFileChange}
+        className="upload-input"
       />
-      <small className="text-muted d-block mt-1">
-        Max file size: <strong>{fileSizeLimitDisplay}</strong> per file
-        {helper && ` · ${helper}`}
-      </small>
     </div>
   );
 };
@@ -145,7 +143,6 @@ const Sell = () => {
     setLoading(true);
     setMessage("");
     try {
-      // Upload all files to Cloudinary first
       const uploadPromises = [];
       const folders = {
         lalpurjaPhotos: "lalpurja",
@@ -166,7 +163,7 @@ const Sell = () => {
               .catch((err) => {
                 console.error(`Upload failed for ${field}:`, err);
                 alert(`Failed to upload ${field}: ${err?.response?.data?.message || err.message}`);
-                throw err; // Re-throw to stop the process
+                throw err;
               })
           );
         }
@@ -240,173 +237,565 @@ const Sell = () => {
   };
 
   return (
-    <div className="container py-4">
-      <h2 className="mb-3">Sell / Rent your property</h2>
-      <p className="text-muted">Fill details, drop a map pin for Kathmandu area, upload Lalpurja and property media. Admin will approve before it goes live.</p>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .sell-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 20px;
+          background: #f8f9fa;
+          min-height: 100vh;
+        }
+        
+        .sell-header {
+          margin-bottom: 32px;
+        }
+        
+        .sell-title {
+          font-size: 28px;
+          font-weight: 700;
+          color: #1a1a1a;
+          margin-bottom: 8px;
+        }
+        
+        .sell-subtitle {
+          font-size: 15px;
+          color: #666;
+          line-height: 1.6;
+        }
+        
+        .success-alert {
+          background: #d4edda;
+          border: 1px solid #c3e6cb;
+          color: #155724;
+          padding: 16px;
+          border-radius: 8px;
+          margin-bottom: 24px;
+        }
+        
+        .form-section {
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 32px;
+          margin-bottom: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .section-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 24px;
+        }
+        
+        .form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+        }
+        
+        .form-grid-full {
+          grid-column: 1 / -1;
+        }
+        
+        .form-group-custom {
+          display: flex;
+          flex-direction: column;
+        }
+        
+        .input-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #333;
+          margin-bottom: 8px;
+        }
+        
+        .input-icon {
+          width: 20px;
+          height: 20px;
+          color: #666;
+        }
+        
+        .form-input {
+          height: 48px;
+          border: 1px solid #d0d0d0;
+          border-radius: 8px;
+          padding: 0 16px;
+          font-size: 15px;
+          color: #1a1a1a;
+          transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+          outline: none;
+          border-color: #2B5BBA;
+          box-shadow: 0 0 0 3px rgba(43, 91, 186, 0.1);
+        }
+        
+        .form-textarea {
+          min-height: 120px;
+          border: 1px solid #d0d0d0;
+          border-radius: 8px;
+          padding: 16px;
+          font-size: 15px;
+          color: #1a1a1a;
+          resize: vertical;
+          transition: all 0.2s;
+        }
+        
+        .form-textarea:focus {
+          outline: none;
+          border-color: #2B5BBA;
+          box-shadow: 0 0 0 3px rgba(43, 91, 186, 0.1);
+        }
+        
+        .upload-box {
+          position: relative;
+          border: 2px dashed #d0d0d0;
+          border-radius: 8px;
+          padding: 32px 24px;
+          text-align: center;
+          background: #fafafa;
+          transition: all 0.3s;
+          cursor: pointer;
+          margin-bottom: 16px;
+        }
+        
+        .upload-box:hover {
+          border-color: #2B5BBA;
+          background: #f0f5ff;
+        }
+        
+        .upload-icon-wrapper {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 12px;
+        }
+        
+        .upload-icon {
+          width: 40px;
+          height: 40px;
+          color: #2B5BBA;
+        }
+        
+        .upload-label {
+          font-size: 15px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 4px;
+        }
+        
+        .upload-helper {
+          font-size: 13px;
+          color: #666;
+        }
+        
+        .upload-input {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          cursor: pointer;
+        }
+        
+        .map-container {
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          margin-bottom: 24px;
+        }
+        
+        .map-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+        
+        .map-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1a1a1a;
+        }
+        
+        .btn-fetch {
+          background: #ffffff;
+          border: 1px solid #2B5BBA;
+          color: #2B5BBA;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        
+        .btn-fetch:hover {
+          background: #2B5BBA;
+          color: #ffffff;
+        }
+        
+        .map-wrapper {
+          height: 320px;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 1px solid #e0e0e0;
+        }
+        
+        .coords-display {
+          font-size: 13px;
+          color: #666;
+          margin-top: 12px;
+        }
+        
+        .nearby-container {
+          background: #ffffff;
+          border-radius: 12px;
+          padding: 24px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          margin-bottom: 24px;
+        }
+        
+        .nearby-section {
+          margin-bottom: 16px;
+        }
+        
+        .nearby-section:last-child {
+          margin-bottom: 0;
+        }
+        
+        .nearby-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 8px;
+        }
+        
+        .nearby-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .nearby-item {
+          font-size: 13px;
+          color: #666;
+          padding: 4px 0;
+          padding-left: 20px;
+          position: relative;
+        }
+        
+        .nearby-item:before {
+          content: '•';
+          position: absolute;
+          left: 8px;
+          color: #2B5BBA;
+        }
+        
+        .btn-submit {
+          width: 100%;
+          height: 52px;
+          background: #2B5BBA;
+          border: none;
+          border-radius: 8px;
+          color: #ffffff;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+        }
+        
+        .btn-submit:hover:not(:disabled) {
+          background: #1E3A5F;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(43, 91, 186, 0.3);
+        }
+        
+        .btn-submit:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        
+        @media (max-width: 768px) {
+          .form-grid {
+            grid-template-columns: 1fr;
+          }
+          
+          .sell-container {
+            padding: 24px 16px;
+          }
+          
+          .form-section {
+            padding: 24px 20px;
+          }
+        }
+      `}</style>
 
-      {message && <div className="alert alert-success">{message}</div>}
-
-      <form onSubmit={handleSubmit} className="row g-4">
-        <div className="col-lg-7">
-          <div className="card p-3">
-            <div className="row g-3">
-              <div className="col-md-8">
-                <label className="form-label fw-semibold">Title</label>
-                <input name="title" value={form.title} onChange={handleChange} className="form-control" required />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label fw-semibold">Price</label>
-                <input name="price" type="number" value={form.price} onChange={handleChange} className="form-control" required />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-semibold">Property Type</label>
-                <select name="propertyType" value={form.propertyType} onChange={handleChange} className="form-select">
-                  {propertyTypes.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-semibold">Post for</label>
-                <select name="listingType" value={form.listingType} onChange={handleChange} className="form-select">
-                  {listingTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                </select>
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-semibold">Bedrooms</label>
-                <input name="bedrooms" type="number" value={form.bedrooms} onChange={handleChange} className="form-control" />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-semibold">Bathrooms</label>
-                <input name="bathrooms" type="number" value={form.bathrooms} onChange={handleChange} className="form-control" />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-semibold">Floors</label>
-                <input name="floors" type="number" value={form.floors} onChange={handleChange} className="form-control" />
-              </div>
-              <div className="col-md-3">
-                <label className="form-label fw-semibold">Construction Year</label>
-                <input name="constructionYear" type="number" value={form.constructionYear} onChange={handleChange} className="form-control" placeholder="e.g. 2020" />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label fw-semibold">Area (sq.ft)</label>
-                <input name="areaSqft" type="number" value={form.areaSqft} onChange={handleChange} className="form-control" placeholder="Square feet" />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label fw-semibold">Area (Ana)</label>
-                <input name="areaAna" type="number" value={form.areaAna} onChange={handleChange} className="form-control" placeholder="Ana" />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label fw-semibold">Area (Ropani)</label>
-                <input name="areaRopani" type="number" value={form.areaRopani} onChange={handleChange} className="form-control" placeholder="Ropani" />
-              </div>
-              <div className="col-12">
-                <label className="form-label fw-semibold">Description</label>
-                <textarea name="description" rows="3" value={form.description} onChange={handleChange} className="form-control" required />
-              </div>
-              <div className="col-md-8">
-                <label className="form-label fw-semibold">Address</label>
-                <input name="address" value={form.address} onChange={handleChange} className="form-control" required />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label fw-semibold">City</label>
-                <input name="city" value={form.city} onChange={handleChange} className="form-control" required />
-              </div>
-              <div className="col-md-4">
-                <label className="form-label fw-semibold">Province</label>
-                <input name="province" value={form.province} onChange={handleChange} className="form-control" />
-              </div>
-            </div>
-          </div>
-
-          <div className="card p-3 mt-3">
-            <h5>Uploads</h5>
-            <p className="text-muted small mb-3">
-              <strong>File Size Limits:</strong> Photos up to 50 MB each, Videos up to 500 MB each
-            </p>
-            <FileInput 
-              label="Lalpurja Photos" 
-              name="lalpurjaPhotos" 
-              accept="image/*" 
-              onChange={handleFiles} 
-              helper="Upload clear Lalpurja scans" 
-              maxCount={4}
-            />
-            <FileInput 
-              label="Property Photos" 
-              name="propertyPhotos" 
-              accept="image/*" 
-              onChange={handleFiles}
-              maxCount={20}
-            />
-            <FileInput 
-              label="Property Videos" 
-              name="propertyVideos" 
-              accept="video/*" 
-              onChange={handleFiles}
-              maxCount={2}
-            />
-            <FileInput 
-              label="Property Road Photos" 
-              name="roadPhotos" 
-              accept="image/*" 
-              onChange={handleFiles}
-              maxCount={6}
-            />
-            <FileInput 
-              label="Property Road Videos" 
-              name="roadVideos" 
-              accept="video/*" 
-              onChange={handleFiles}
-              maxCount={2}
-            />
-          </div>
+      <div className="sell-container">
+        <div className="sell-header">
+          <h2 className="sell-title">Fill out Property details</h2>
+          <p className="sell-subtitle">
+            Fill details, drop a map pin for your property location, upload Lalpurja and property media. Admin will approve before it goes live.
+          </p>
         </div>
 
-        <div className="col-lg-5">
-          <div className="card p-3 mb-3">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">Drop a pin (Kathmandu map)</h5>
-              <button type="button" className="btn btn-outline-primary btn-sm" onClick={fetchNearbyPlaces}>Fetch nearby places</button>
-            </div>
-            <div style={{ height: 320 }} className="mt-3">
-              <MapContainer center={[center.lat, center.lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
-                <TileLayer
-                  attribution='&copy; <a href="http://osm.org/copyright">OSM</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        {message && <div className="success-alert">{message}</div>}
+
+        <form onSubmit={handleSubmit}>
+          <div className="row g-4">
+            <div className="col-lg-7">
+              {/* Property Details Section */}
+              <div className="form-section">
+                <div className="form-grid">
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                      Property Name
+                    </label>
+                    <input name="title" value={form.title} onChange={handleChange} className="form-input" required placeholder="Ram home" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Price
+                    </label>
+                    <input name="price" type="number" value={form.price} onChange={handleChange} className="form-input" required placeholder="50000" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z" />
+                      </svg>
+                      Total Area
+                    </label>
+                    <input name="areaSqft" type="number" value={form.areaSqft} onChange={handleChange} className="form-input" placeholder="120sq" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                      </svg>
+                      Bedrooms
+                    </label>
+                    <input name="bedrooms" type="number" value={form.bedrooms} onChange={handleChange} className="form-input" placeholder="8" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      Floors
+                    </label>
+                    <input name="floors" type="number" value={form.floors} onChange={handleChange} className="form-input" placeholder="7" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Bathrooms
+                    </label>
+                    <input name="bathrooms" type="number" value={form.bathrooms} onChange={handleChange} className="form-input" placeholder="4" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      Construction year
+                    </label>
+                    <input name="constructionYear" type="number" value={form.constructionYear} onChange={handleChange} className="form-input" placeholder="2016" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" />
+                      </svg>
+                      Total area (in ana)
+                    </label>
+                    <input name="areaAna" type="number" value={form.areaAna} onChange={handleChange} className="form-input" placeholder="5" />
+                  </div>
+
+                  <div className="form-group-custom form-grid-full">
+                    <label className="input-label">Property Type</label>
+                    <select name="propertyType" value={form.propertyType} onChange={handleChange} className="form-input">
+                      {propertyTypes.map((p) => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="form-group-custom form-grid-full">
+                    <label className="input-label">Post for</label>
+                    <select name="listingType" value={form.listingType} onChange={handleChange} className="form-input">
+                      {listingTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="form-group-custom form-grid-full">
+                    <label className="input-label">Area (Ropani)</label>
+                    <input name="areaRopani" type="number" value={form.areaRopani} onChange={handleChange} className="form-input" placeholder="Ropani" />
+                  </div>
+
+                  <div className="form-group-custom form-grid-full">
+                    <label className="input-label">Address</label>
+                    <input name="address" value={form.address} onChange={handleChange} className="form-input" required placeholder="Enter address" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">City</label>
+                    <input name="city" value={form.city} onChange={handleChange} className="form-input" required placeholder="Kathmandu" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">Province</label>
+                    <input name="province" value={form.province} onChange={handleChange} className="form-input" placeholder="Bagmati" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Upload Section */}
+              <div className="form-section">
+                <h3 className="section-title">Upload Media</h3>
+                <FileInput 
+                  label="Lalpurja Upload" 
+                  name="lalpurjaPhotos" 
+                  accept="image/*" 
+                  onChange={handleFiles}
+                  maxCount={4}
                 />
-                <LocationPicker value={coords} onChange={setCoords} />
-              </MapContainer>
-            </div>
-            {coords && <small className="text-muted">Selected: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</small>}
-          </div>
+                <FileInput 
+                  label="Property Photo Upload" 
+                  name="propertyPhotos" 
+                  accept="image/*" 
+                  onChange={handleFiles}
+                  maxCount={20}
+                />
+                <FileInput 
+                  label="Property Video Upload" 
+                  name="propertyVideos" 
+                  accept="video/*" 
+                  onChange={handleFiles}
+                  maxCount={2}
+                />
+                <FileInput 
+                  label="Property Road Photo Upload" 
+                  name="roadPhotos" 
+                  accept="image/*" 
+                  onChange={handleFiles}
+                  maxCount={6}
+                />
+                <FileInput 
+                  label="Property Road Video Upload" 
+                  name="roadVideos" 
+                  accept="video/*" 
+                  onChange={handleFiles}
+                  maxCount={2}
+                />
+              </div>
 
-          <div className="card p-3">
-            <h5>Nearby (auto-fill top 3 each)</h5>
-            <div className="mb-2">
-              <strong>Education</strong>
-              <ul className="mb-1">
-                {nearby.education.map((n, idx) => <li key={idx}>{n.name} ({n.type || "edu"})</li>)}
-              </ul>
+              {/* Description Section */}
+              <div className="form-section">
+                <h3 className="section-title">Fill out property description</h3>
+                <div className="form-group-custom">
+                  <textarea 
+                    name="description" 
+                    value={form.description} 
+                    onChange={handleChange} 
+                    className="form-textarea" 
+                    required
+                    placeholder="This beautiful home offers a warm and inviting atmosphere with plenty of natural light throughout..."
+                  />
+                </div>
+              </div>
             </div>
-            <div className="mb-2">
-              <strong>Food</strong>
-              <ul className="mb-1">
-                {nearby.food.map((n, idx) => <li key={idx}>{n.name} ({n.type || "food"})</li>)}
-              </ul>
-            </div>
-            <div className="mb-2">
-              <strong>Health</strong>
-              <ul className="mb-1">
-                {nearby.health.map((n, idx) => <li key={idx}>{n.name} ({n.type || "health"})</li>)}
-              </ul>
+
+            <div className="col-lg-5">
+              {/* Map Section */}
+              <div className="map-container">
+                <div className="map-header">
+                  <h3 className="map-title">Point your location on map</h3>
+                  <button type="button" className="btn-fetch" onClick={fetchNearbyPlaces}>
+                    Fetch nearby
+                  </button>
+                </div>
+                <div className="map-wrapper">
+                  <MapContainer center={[center.lat, center.lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
+                    <TileLayer
+                      attribution='&copy; <a href="http://osm.org/copyright">OSM</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <LocationPicker value={coords} onChange={setCoords} />
+                  </MapContainer>
+                </div>
+                {coords && <div className="coords-display">Selected: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</div>}
+              </div>
+
+              {/* Nearby Places */}
+              <div className="nearby-container">
+                <h3 className="section-title">Nearby Places</h3>
+                
+                <div className="nearby-section">
+                  <div className="nearby-title">Education</div>
+                  <ul className="nearby-list">
+                    {nearby.education.length > 0 ? (
+                      nearby.education.map((n, idx) => <li key={idx} className="nearby-item">{n.name} ({n.type || "edu"})</li>)
+                    ) : (
+                      <li className="nearby-item">No data yet</li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="nearby-section">
+                  <div className="nearby-title">Food</div>
+                  <ul className="nearby-list">
+                    {nearby.food.length > 0 ? (
+                      nearby.food.map((n, idx) => <li key={idx} className="nearby-item">{n.name} ({n.type || "food"})</li>)
+                    ) : (
+                      <li className="nearby-item">No data yet</li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="nearby-section">
+                  <div className="nearby-title">Health</div>
+                  <ul className="nearby-list">
+                    {nearby.health.length > 0 ? (
+                      nearby.health.map((n, idx) => <li key={idx} className="nearby-item">{n.name} ({n.type || "health"})</li>)
+                    ) : (
+                      <li className="nearby-item">No data yet</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button className="btn-submit" type="submit" disabled={loading}>
+                {loading ? "Submitting..." : "Upload Property Listing"}
+              </button>
             </div>
           </div>
-
-          <button className="btn btn-primary w-100 mt-3" type="submit" disabled={loading}>
-            {loading ? "Submitting..." : "Submit for approval"}
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 };
 

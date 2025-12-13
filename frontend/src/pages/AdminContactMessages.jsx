@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getContactMessages, updateContactStatus, deleteContactMessage } from "../api/contact";
 import { Button, Badge } from "react-bootstrap";
+import AdminLayout from "../components/AdminLayout";
 
 const AdminContactMessages = () => {
   const token = localStorage.getItem("token");
@@ -17,7 +18,7 @@ const AdminContactMessages = () => {
     try {
       setLoading(true);
       const res = await getContactMessages(statusFilter, token);
-      setMessages(res.data);
+      setMessages(res.data || []);
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to load messages");
     } finally {
@@ -64,9 +65,9 @@ const AdminContactMessages = () => {
   };
 
   return (
-    <div className="container py-4">
+    <AdminLayout title={"Contact Messages"}>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Contact Messages</h2>
+        <div />
         <div className="btn-group" role="group">
           <button
             type="button"
@@ -111,7 +112,7 @@ const AdminContactMessages = () => {
         <div className="row g-3">
           {messages.map((msg) => (
             <div className="col-md-6" key={msg._id}>
-              <div className="card h-100">
+              <div className="card h-100 admin-card">
                 <div className="card-header d-flex justify-content-between align-items-center">
                   <Badge bg={getStatusBadge(msg.status)}>{msg.status}</Badge>
                   <small className="text-muted">{formatDate(msg.createdAt)}</small>
@@ -174,7 +175,7 @@ const AdminContactMessages = () => {
           ))}
         </div>
       )}
-    </div>
+    </AdminLayout>
   );
 };
 
