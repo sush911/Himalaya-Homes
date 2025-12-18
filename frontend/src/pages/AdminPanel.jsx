@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { fetchPropertyRequests, approveRequest, rejectRequest, deleteProperty } from "../api/property";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { NavLink } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { FiCheckCircle, FiXCircle } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiImage, FiVideo, FiMapPin, FiHome, FiCalendar, FiDollarSign } from 'react-icons/fi';
 import "../styles/Admin.css";
 import AdminLayout from "../components/AdminLayout";
+import { useLanguage } from "../context/LanguageContext";
 
 const AdminPanel = () => {
+  const { t } = useLanguage();
   const token = localStorage.getItem("token");
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,6 +17,7 @@ const AdminPanel = () => {
   const [message, setMessage] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
+  const [showDetailedView, setShowDetailedView] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -78,295 +80,1097 @@ const AdminPanel = () => {
   };
 
   return (
-    <AdminLayout
-      title={"Property Requests"}
-      controls={(
-        <div className="btn-group" role="group">
-          <button
-            type="button"
-            className={`btn ${statusFilter === "pending" ? "btn-primary" : "btn-outline-primary"}`}
-            onClick={() => setStatusFilter("pending")}
-          >
-            Pending {statusFilter === "pending" && `(${requests.length})`}
-          </button>
-          <button
-            type="button"
-            className={`btn ${statusFilter === "approved" ? "btn-success" : "btn-outline-success"}`}
-            onClick={() => setStatusFilter("approved")}
-          >
-            Approved {statusFilter === "approved" && `(${requests.length})`}
-          </button>
-          <button
-            type="button"
-            className={`btn ${statusFilter === "rejected" ? "btn-danger" : "btn-outline-danger"}`}
-            onClick={() => setStatusFilter("rejected")}
-          >
-            Rejected {statusFilter === "rejected" && `(${requests.length})`}
-          </button>
-        </div>
-      )}
-    >
-      {message && (
-        <div className={`alert alert-${message.includes("approved") ? "success" : "info"} alert-dismissible fade show`} role="alert">
-          {message}
-          <button type="button" className="btn-close" onClick={() => setMessage("")}></button>
-        </div>
-      )}
+    <>
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .admin-enhanced-card {
+          animation: fadeIn 0.5s ease-out;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid #E0E0E0;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #FFFFFF;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .admin-enhanced-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 24px rgba(43, 91, 186, 0.15);
+          border-color: #2B5BBA;
+        }
+        .card-image-container {
+          position: relative;
+          overflow: hidden;
+          height: 280px;
+          background: linear-gradient(135deg, #F5F5F5 0%, #E0E0E0 100%);
+        }
+        .card-image-container img {
+          transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .admin-enhanced-card:hover .card-image-container img {
+          transform: scale(1.08);
+        }
+        .status-badge-overlay {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          padding: 6px 14px;
+          border-radius: 20px;
+          font-size: 0.75rem;
+          font-weight: 600;
+          backdrop-filter: blur(10px);
+          animation: slideDown 0.4s ease-out;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .badge-pending { background: rgba(255, 193, 7, 0.95); color: #856404; }
+        .badge-approved { background: rgba(40, 167, 69, 0.95); color: #FFFFFF; }
+        .badge-rejected { background: rgba(220, 53, 69, 0.95); color: #FFFFFF; }
+        .price-tag {
+          position: absolute;
+          bottom: 12px;
+          left: 12px;
+          background: rgba(30, 58, 95, 0.95);
+          color: #FFFFFF;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-weight: 700;
+          font-size: 1.1rem;
+          backdrop-filter: blur(10px);
+          animation: slideDown 0.5s ease-out;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .card-content { padding: 24px; }
+        .property-title {
+          color: #1E3A5F;
+          font-size: 1.35rem;
+          font-weight: 700;
+          margin-bottom: 12px;
+          line-height: 1.3;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .property-description {
+          color: #666;
+          font-size: 0.9rem;
+          line-height: 1.6;
+          margin-bottom: 16px;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .info-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+        .info-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          background: #F5F5F5;
+          border-radius: 8px;
+          font-size: 0.85rem;
+          transition: all 0.2s ease;
+        }
+        .info-item:hover {
+          background: #E8F0FE;
+          transform: translateX(2px);
+        }
+        .info-item svg { color: #2B5BBA; flex-shrink: 0; }
+        .info-label { color: #666; font-weight: 500; }
+        .info-value { color: #333; font-weight: 600; margin-left: auto; }
+        .location-banner {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px;
+          background: linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%);
+          border-radius: 8px;
+          margin-bottom: 16px;
+          border-left: 3px solid #2B5BBA;
+        }
+        .location-banner svg { color: #2B5BBA; font-size: 1.1rem; }
+        .location-text { color: #333; font-size: 0.9rem; font-weight: 500; flex: 1; }
+        .action-buttons { display: flex; gap: 8px; margin-top: 16px; }
+        .btn-enhanced {
+          flex: 1;
+          padding: 10px 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .btn-approve {
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        .btn-approve:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+          background: linear-gradient(135deg, #218838 0%, #1ba87d 100%);
+        }
+        .btn-reject {
+          background: linear-gradient(135deg, #dc3545 0%, #e85d68 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        .btn-reject:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+          background: linear-gradient(135deg, #c82333 0%, #d64554 100%);
+        }
+        .btn-view-media {
+          background: linear-gradient(135deg, #2B5BBA 0%, #4A7FDB 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(43, 91, 186, 0.3);
+        }
+        .btn-view-media:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(43, 91, 186, 0.4);
+          background: linear-gradient(135deg, #1E3A5F 0%, #2B5BBA 100%);
+        }
+        .btn-outline-enhanced {
+          background: white;
+          border: 2px solid #2B5BBA;
+          color: #2B5BBA;
+        }
+        .btn-outline-enhanced:hover {
+          background: #2B5BBA;
+          color: white;
+          transform: translateY(-2px);
+        }
+        .filter-buttons {
+          display: flex;
+          gap: 12px;
+          padding: 8px;
+          background: #F5F5F5;
+          border-radius: 12px;
+          animation: fadeIn 0.4s ease-out;
+        }
+        .filter-btn {
+          flex: 1;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 0.95rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 2px solid transparent;
+          background: white;
+          color: #666;
+          position: relative;
+          overflow: hidden;
+        }
+        .filter-btn::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+          transition: left 0.5s;
+        }
+        .filter-btn:hover::before { left: 100%; }
+        .filter-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .filter-btn.active-pending {
+          background: linear-gradient(135deg, #ffc107 0%, #ffcd38 100%);
+          color: #856404;
+          border-color: #ffc107;
+          box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+        .filter-btn.active-approved {
+          background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
+          color: white;
+          border-color: #28a745;
+          box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        .filter-btn.active-rejected {
+          background: linear-gradient(135deg, #dc3545 0%, #e85d68 100%);
+          color: white;
+          border-color: #dc3545;
+          box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        .count-badge {
+          display: inline-block;
+          background: rgba(255, 255, 255, 0.3);
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 0.8rem;
+          margin-left: 6px;
+          font-weight: 700;
+        }
+        .alert-enhanced {
+          animation: slideDown 0.4s ease-out;
+          border-radius: 10px;
+          border: none;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          padding: 16px 20px;
+        }
+        .loading-spinner { animation: fadeIn 0.3s ease-out; }
+        .spinner-border { width: 3rem; height: 3rem; border-width: 4px; }
+        .empty-state {
+          text-align: center;
+          padding: 60px 20px;
+          animation: fadeIn 0.5s ease-out;
+        }
+        .empty-state-icon { font-size: 4rem; color: #E0E0E0; margin-bottom: 20px; }
+        .empty-state-text { color: #666; font-size: 1.1rem; font-weight: 500; }
+        .modal-enhanced .modal-content {
+          border-radius: 16px;
+          border: none;
+          overflow: hidden;
+          animation: scaleIn 0.3s ease-out;
+        }
+        .modal-enhanced .modal-header {
+          background: linear-gradient(135deg, #1E3A5F 0%, #2B5BBA 100%);
+          color: white;
+          padding: 20px 24px;
+          border: none;
+        }
+        .modal-enhanced .modal-title { font-weight: 700; font-size: 1.3rem; }
+        .modal-enhanced .btn-close { filter: brightness(0) invert(1); }
+        .media-section { margin-bottom: 32px; animation: fadeIn 0.5s ease-out; }
+        .media-section-title {
+          color: #1E3A5F;
+          font-size: 1.1rem;
+          font-weight: 700;
+          margin-bottom: 16px;
+          padding-bottom: 8px;
+          border-bottom: 2px solid #E0E0E0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .media-count {
+          background: #2B5BBA;
+          color: white;
+          padding: 2px 10px;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          margin-left: auto;
+        }
+        .media-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 16px;
+        }
+        .media-item {
+          position: relative;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+          background: #F5F5F5;
+        }
+        .media-item:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+        .media-item img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+        .media-item:hover img { transform: scale(1.05); }
+        .video-container {
+          position: relative;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .video-container video { border-radius: 12px; }
+        .timestamp {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: #999;
+          font-size: 0.85rem;
+          padding: 8px 12px;
+          background: #F5F5F5;
+          border-radius: 6px;
+          margin-bottom: 16px;
+        }
+        @media (max-width: 768px) {
+          .info-grid { grid-template-columns: 1fr; }
+          .action-buttons { flex-direction: column; }
+          .filter-buttons { flex-direction: column; }
+          .card-image-container { height: 220px; }
+        }
+      `}</style>
 
-      {loading ? (
-        <div className="text-center py-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+      <AdminLayout
+        title={"Property Requests"}
+        controls={(
+          <div className="filter-buttons">
+            <button
+              type="button"
+              className={`filter-btn ${statusFilter === "pending" ? "active-pending" : ""}`}
+              onClick={() => setStatusFilter("pending")}
+            >
+              ⏳ Pending
+              {statusFilter === "pending" && <span className="count-badge">{requests.length}</span>}
+            </button>
+            <button
+              type="button"
+              className={`filter-btn ${statusFilter === "approved" ? "active-approved" : ""}`}
+              onClick={() => setStatusFilter("approved")}
+            >
+              ✓ Approved
+              {statusFilter === "approved" && <span className="count-badge">{requests.length}</span>}
+            </button>
+            <button
+              type="button"
+              className={`filter-btn ${statusFilter === "rejected" ? "active-rejected" : ""}`}
+              onClick={() => setStatusFilter("rejected")}
+            >
+              ✕ Rejected
+              {statusFilter === "rejected" && <span className="count-badge">{requests.length}</span>}
+            </button>
           </div>
-        </div>
-      ) : requests.length === 0 ? (
-        <div className="alert alert-info">No {statusFilter} requests found.</div>
-      ) : (
-        <div className="row g-4">
-          {requests.map((req) => (
-            <div key={req._id} className="col-12 col-lg-6">
-              <div className="card shadow-sm admin-card">
-                <div className="row g-0">
-                  <div className="col-md-4">
+        )}
+      >
+        {message && (
+          <div className={`alert alert-enhanced alert-${message.includes("approved") ? "success" : message.includes("rejected") ? "danger" : "info"} alert-dismissible fade show`} role="alert">
+            <strong>{message.includes("approved") ? "✓ Success!" : message.includes("rejected") ? "✓ Rejected" : "ℹ Info"}</strong> {message}
+            <button type="button" className="btn-close" onClick={() => setMessage("")}></button>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-5 loading-spinner">
+            <div className="spinner-border text-primary" role="status" style={{ color: '#2B5BBA !important' }}>
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3" style={{ color: '#666', fontWeight: 500 }}>Loading property requests...</p>
+          </div>
+        ) : requests.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">
+              {statusFilter === "pending" ? "📋" : statusFilter === "approved" ? "✅" : "❌"}
+            </div>
+            <div className="empty-state-text">
+              No {statusFilter} requests found.
+            </div>
+          </div>
+        ) : (
+          <div className="row g-4">
+            {requests.map((req, index) => (
+              <div key={req._id} className="col-12 col-xl-6" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="admin-enhanced-card">
+                  <div className="card-image-container">
                     {req.media?.propertyPhotos?.[0] ? (
                       <img
                         src={req.media.propertyPhotos[0]}
-                        className="card-img h-100"
                         alt={req.title}
-                        style={{ objectFit: "cover", minHeight: "300px" }}
+                        onLoad={(e) => e.target.style.opacity = 1}
+                        style={{ opacity: 0, transition: 'opacity 0.3s' }}
                       />
                     ) : (
-                      <div className="card-img h-100 bg-light d-flex align-items-center justify-content-center">
-                        <span className="text-muted">No Image</span>
+                      <div className="d-flex align-items-center justify-content-center h-100">
+                        <FiImage size={48} color="#ccc" />
+                      </div>
+                    )}
+                    <div className={`status-badge-overlay badge-${req.status}`}>
+                      {req.status === "pending" && "⏳ Pending Review"}
+                      {req.status === "approved" && "✓ Approved"}
+                      {req.status === "rejected" && "✕ Rejected"}
+                    </div>
+                    <div className="price-tag">
+                      <span style={{ fontSize: '16px', display: 'inline', marginRight: '4px' }}>रु</span>  {/* Nepali word for Rupee */}
+                      Rs {req.price?.toLocaleString() || "N/A"}
+                    </div>
+                  </div>
+
+                  <div className="card-content">
+                    <h5 className="property-title">{req.title}</h5>
+                    <p className="property-description">{req.description}</p>
+
+                    <div className="location-banner">
+                      <FiMapPin />
+                      <span className="location-text">
+                        {req.location?.address}, {req.location?.city}, {req.location?.state || req.location?.province}
+                      </span>
+                    </div>
+
+                    <div className="info-grid">
+                      <div className="info-item">
+                        <FiHome size={16} />
+                        <span className="info-label">Type</span>
+                        <span className="info-value">{req.propertyType}</span>
+                      </div>
+                      <div className="info-item">
+                        <span style={{ fontSize: '16px' }}>🏷️</span>
+                        <span className="info-label">Listing</span>
+                        <span className="info-value">{req.listingType === "sale" ? "Sale" : "Rent"}</span>
+                      </div>
+                      <div className="info-item">
+                        <span style={{ fontSize: '16px' }}>🛏️</span>
+                        <span className="info-label">Bedrooms</span>
+                        <span className="info-value">{req.bedrooms || 0}</span>
+                      </div>
+                      <div className="info-item">
+                        <span style={{ fontSize: '16px' }}>🚿</span>
+                        <span className="info-label">Bathrooms</span>
+                        <span className="info-value">{req.bathrooms || 0}</span>
+                      </div>
+                      <div className="info-item">
+                        <span style={{ fontSize: '16px' }}>📐</span>
+                        <span className="info-label">Area</span>
+                        <span className="info-value">
+                          {req.area?.sqft ? `${req.area.sqft} sqft` : 
+                           req.area?.ana ? `${req.area.ana} Ana` :
+                           req.area?.ropani ? `${req.area.ropani} Ropani` : "N/A"}
+                        </span>
+                      </div>
+                      <div className="info-item">
+                        <FiCalendar size={16} />
+                        <span className="info-label">Year</span>
+                        <span className="info-value">{req.constructionYear || "N/A"}</span>
+                      </div>
+                    </div>
+
+                    <div className="timestamp">
+                      <FiCalendar size={14} />
+                      <span>Submitted: {formatDate(req.createdAt)}</span>
+                    </div>
+
+                    <div className="action-buttons">
+                      <button
+                        className="btn btn-enhanced btn-view-media"
+                        onClick={() => {
+                          setSelectedRequest(req);
+                          setShowDetailedView(true);
+                        }}
+                        style={{ background: 'linear-gradient(135deg, #4A7FDB 0%, #2B5BBA 100%)' }}
+                      >
+                        📋 Full Details
+                      </button>
+                      <button
+                        className="btn btn-enhanced btn-view-media"
+                        onClick={() => {
+                          setSelectedRequest(req);
+                          setShowGallery(true);
+                        }}
+                      >
+                        <FiImage size={16} /> View Media
+                      </button>
+                    </div>
+
+                    {req.status === "pending" && (
+                      <div className="action-buttons mt-2">
+                        <button
+                          className="btn btn-enhanced btn-approve"
+                          onClick={() => handleApprove(req._id)}
+                        >
+                          <FiCheckCircle size={18} /> Approve
+                        </button>
+                        <button
+                          className="btn btn-enhanced btn-reject"
+                          onClick={() => handleReject(req._id)}
+                        >
+                          <FiXCircle size={18} /> Reject
+                        </button>
                       </div>
                     )}
                   </div>
-                  <div className="col-md-8">
-                    <div className="card-body d-flex flex-column h-100">
-                      <div>
-                        <h5 className="card-title">{req.title}</h5>
-                        <p className="card-text"><strong>Description:</strong> {req.description}</p>
-                        <div className="row mb-2">
-                          <div className="col-6">
-                            <strong>Price:</strong> Rs {req.price?.toLocaleString() || "N/A"}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showGallery && selectedRequest && (
+          <div
+            className="modal fade show modal-enhanced"
+            style={{ display: "block", backgroundColor: "rgba(0,0,0,0.6)" }}
+            onClick={() => setShowGallery(false)}
+          >
+            <div className="modal-dialog modal-xl modal-dialog-scrollable" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    <FiImage size={24} style={{ marginRight: '12px', verticalAlign: 'middle' }} />
+                    {selectedRequest.title}
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowGallery(false)}
+                  ></button>
+                </div>
+                <div className="modal-body" style={{ padding: '24px' }}>
+                  {selectedRequest.media?.propertyPhotos?.length > 0 && (
+                    <div className="media-section">
+                      <h6 className="media-section-title">
+                        <FiImage size={20} />
+                        Property Photos
+                        <span className="media-count">{selectedRequest.media.propertyPhotos.length}</span>
+                      </h6>
+                      <div className="media-grid">
+                        {selectedRequest.media.propertyPhotos.map((url, idx) => (
+                          <div key={idx} className="media-item">
+                            <img src={url} alt={`Property ${idx + 1}`} />
                           </div>
-                          <div className="col-6">
-                            <strong>Type:</strong> {req.propertyType} | {req.listingType === "sale" ? "Buy" : "Rent"}
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRequest.media?.lalpurjaPhotos?.length > 0 && (
+                    <div className="media-section">
+                      <h6 className="media-section-title">
+                        📄 Lalpurja Documents
+                        <span className="media-count">{selectedRequest.media.lalpurjaPhotos.length}</span>
+                      </h6>
+                      <div className="media-grid">
+                        {selectedRequest.media.lalpurjaPhotos.map((url, idx) => (
+                          <div key={idx} className="media-item">
+                            <img src={url} alt={`Lalpurja ${idx + 1}`} />
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRequest.media?.propertyVideos?.length > 0 && (
+                    <div className="media-section">
+                      <h6 className="media-section-title">
+                        <FiVideo size={20} />
+                        Property Videos
+                        <span className="media-count">{selectedRequest.media.propertyVideos.length}</span>
+                      </h6>
+                      <div className="row g-3">
+                        {selectedRequest.media.propertyVideos.map((url, idx) => (
+                          <div key={idx} className="col-md-6">
+                            <div className="video-container">
+                              <video controls className="w-100 rounded" style={{ maxHeight: "400px" }}>
+                                <source src={url} type="video/mp4" />
+                                Your browser does not support the video tag.
+                              </video>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRequest.media?.roadPhotos?.length > 0 && (
+                    <div className="media-section">
+                      <h6 className="media-section-title">
+                        🛣️ Road Photos
+                        <span className="media-count">{selectedRequest.media.roadPhotos.length}</span>
+                      </h6>
+                      <div className="media-grid">
+                        {selectedRequest.media.roadPhotos.map((url, idx) => (
+                          <div key={idx} className="media-item">
+                            <img src={url} alt={`Road ${idx + 1}`} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedRequest.media?.roadVideos?.length > 0 && (
+                    <div className="media-section">
+                      <h6 className="media-section-title">
+                        <FiVideo size={20} />
+                        Road Videos
+                        <span className="media-count">{selectedRequest.media.roadVideos.length}</span>
+                      </h6>
+                      <div className="row g-3">
+                        {selectedRequest.media.roadVideos.map((url, idx) => (
+                          <div key={idx} className="col-md-6">
+                            <div className="video-container">
+                              <video controls className="w-100 rounded" style={{ maxHeight: "400px" }}>
+                                <source src={url} type="video/mp4" />
+                                Your browser does not support the video tag.
+                              </video>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(!selectedRequest.media || 
+                    (!selectedRequest.media.lalpurjaPhotos?.length && 
+                     !selectedRequest.media.propertyPhotos?.length && 
+                     !selectedRequest.media.propertyVideos?.length &&
+                     !selectedRequest.media.roadPhotos?.length &&
+                     !selectedRequest.media.roadVideos?.length)) && (
+                    <div className="alert alert-info">No media files available.</div>
+                  )}
+                </div>
+                <div className="modal-footer" style={{ padding: '16px 24px', background: '#F5F5F5', borderTop: '1px solid #E0E0E0' }}>
+                  {selectedRequest.status === "pending" && (
+                    <>
+                      <button
+                        className="btn btn-enhanced btn-approve"
+                        onClick={() => {
+                          handleApprove(selectedRequest._id);
+                          setShowGallery(false);
+                        }}
+                      >
+                        <FiCheckCircle size={18} /> Approve Property
+                      </button>
+                      <button
+                        className="btn btn-enhanced btn-reject"
+                        onClick={() => {
+                          handleReject(selectedRequest._id);
+                          setShowGallery(false);
+                        }}
+                      >
+                        <FiXCircle size={18} /> Reject Property
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-enhanced btn-outline-enhanced"
+                    onClick={() => setShowGallery(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showDetailedView && selectedRequest && (
+          <div
+            className="modal fade show modal-enhanced"
+            style={{ display: "block", backgroundColor: "rgba(0,0,0,0.6)" }}
+            onClick={() => setShowDetailedView(false)}
+          >
+            <div className="modal-dialog modal-xl modal-dialog-scrollable" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">
+                    📋 Complete Property Details
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setShowDetailedView(false)}
+                  ></button>
+                </div>
+                <div className="modal-body" style={{ padding: '24px' }}>
+                  {/* Property Header */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #1E3A5F 0%, #2B5BBA 100%)',
+                    color: 'white',
+                    padding: '24px',
+                    borderRadius: '12px',
+                    marginBottom: '24px'
+                  }}>
+                    <h3 style={{ marginBottom: '12px' }}>{selectedRequest.title}</h3>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '16px', marginRight: '4px' }}>रु</span>
+                      Rs {selectedRequest.price?.toLocaleString() || "N/A"}
+                    </div>
+                    <small style={{ opacity: 0.9 }}>Status: <span style={{ 
+                      textTransform: 'capitalize',
+                      background: 'rgba(255,255,255,0.2)',
+                      padding: '4px 12px',
+                      borderRadius: '20px'
+                    }}>{selectedRequest.status}</span></small>
+                  </div>
+
+                  {/* Description Section */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px', fontSize: '1.1rem' }}>
+                      📝 Description
+                    </h6>
+                    <div style={{
+                      background: '#F5F5F5',
+                      padding: '16px',
+                      borderRadius: '10px',
+                      lineHeight: '1.6',
+                      color: '#333'
+                    }}>
+                      {selectedRequest.description || "No description provided"}
+                    </div>
+                  </div>
+
+                  {/* Location Section */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px', fontSize: '1.1rem' }}>
+                      📍 Location
+                    </h6>
+                    <div style={{
+                      background: '#F5F5F5',
+                      padding: '16px',
+                      borderRadius: '10px'
+                    }}>
+                      <div style={{ marginBottom: '8px' }}>
+                        <strong>Address:</strong> {selectedRequest.location?.address || "N/A"}
+                      </div>
+                      <div style={{ marginBottom: '8px' }}>
+                        <strong>City:</strong> {selectedRequest.location?.city || "N/A"}
+                      </div>
+                      <div style={{ marginBottom: '8px' }}>
+                        <strong>State/Province:</strong> {selectedRequest.location?.state || selectedRequest.location?.province || "N/A"}
+                      </div>
+                      <div style={{ marginBottom: '8px' }}>
+                        <strong>Country:</strong> {selectedRequest.location?.country || "N/A"}
+                      </div>
+                      {selectedRequest.location?.zipCode && (
+                        <div>
+                          <strong>Zip Code:</strong> {selectedRequest.location.zipCode}
                         </div>
-                        <div className="row mb-2">
-                          <div className="col-6">
-                            <strong>Bedrooms:</strong> {req.bedrooms || 0} | <strong>Bathrooms:</strong> {req.bathrooms || 0}
-                          </div>
-                          <div className="col-6">
-                            <strong>Floors:</strong> {req.floors || 0} | <strong>Year:</strong> {req.constructionYear || "N/A"}
-                          </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Map Section */}
+                  {selectedRequest.location?.coordinates?.lat && selectedRequest.location?.coordinates?.lng && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px', fontSize: '1.1rem' }}>
+                        🗺️ Map Location
+                      </h6>
+                      <div style={{
+                        background: '#F5F5F5',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        marginBottom: '12px'
+                      }}>
+                        <iframe
+                          width="100%"
+                          height="300"
+                          frameBorder="0"
+                          style={{ border: 'none' }}
+                          src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedRequest.location.coordinates.lng-0.01},${selectedRequest.location.coordinates.lat-0.01},${selectedRequest.location.coordinates.lng+0.01},${selectedRequest.location.coordinates.lat+0.01}&layer=mapnik&marker=${selectedRequest.location.coordinates.lat},${selectedRequest.location.coordinates.lng}`}
+                        ></iframe>
+                      </div>
+                      <small style={{ color: '#666' }}>
+                        Coordinates: {selectedRequest.location.coordinates.lat.toFixed(6)}, {selectedRequest.location.coordinates.lng.toFixed(6)}
+                      </small>
+                    </div>
+                  )}
+
+                  {/* Property Details Grid */}
+                  <div style={{ marginBottom: '24px' }}>
+                    <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px', fontSize: '1.1rem' }}>
+                      🏠 Property Details
+                    </h6>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Property Type</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem', textTransform: 'capitalize' }}>
+                          {selectedRequest.propertyType || "N/A"}
                         </div>
-                        <div className="mb-2">
-                          <strong>Area:</strong>{" "}
-                          {req.area?.sqft && `${req.area.sqft} sq.ft`}
-                          {req.area?.ana && ` | ${req.area.ana} Ana`}
-                          {req.area?.ropani && ` | ${req.area.ropani} Ropani`}
-                        </div>
-                        <p className="card-text mb-2">
-                          <strong>Location:</strong> {req.location?.address}, {req.location?.city}, {req.location?.state || req.location?.province}
-                        </p>
                       </div>
 
-                      <div className="mt-auto">
-                        {req.media && (
-                          <div className="mb-2 d-flex gap-2">
-                            <button
-                              className="btn btn-outline-primary btn-sm"
-                              onClick={() => {
-                                setSelectedRequest(req);
-                                setShowGallery(true);
-                              }}
-                            >
-                              View All Photos & Videos
-                            </button>
-                            <a href={`/property/${req._id}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-secondary admin-action-btn">View on site</a>
-                            <NavLink to="/admin/properties" className="btn btn-sm btn-outline-primary admin-action-btn">Open Properties</NavLink>
-                          </div>
-                        )}
-
-                        <p className="card-text text-muted small mb-2">
-                          <strong>Submitted:</strong> {formatDate(req.createdAt)}
-                        </p>
-
-                        <div className="d-flex gap-2">
-                          {req.status === "pending" && (
-                            <>
-                              <button
-                                className="btn btn-success btn-sm flex-fill d-flex align-items-center justify-content-center"
-                                onClick={() => handleApprove(req._id)}
-                              >
-                                <FiCheckCircle style={{ marginRight: 8 }} /> Approve
-                              </button>
-                              <button
-                                className="btn btn-danger btn-sm flex-fill d-flex align-items-center justify-content-center"
-                                onClick={() => handleReject(req._id)}
-                              >
-                                <FiXCircle style={{ marginRight: 8 }} /> Reject
-                              </button>
-                            </>
-                          )}
-                          {req.status === "approved" && (
-                            <span className="badge bg-success w-100 admin-badge d-flex align-items-center"><FiCheckCircle style={{ marginRight: 8 }} /> Approved</span>
-                          )}
-                          {req.status === "rejected" && (
-                            <span className="badge bg-danger w-100 admin-badge d-flex align-items-center"><FiXCircle style={{ marginRight: 8 }} /> Rejected</span>
-                          )}
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Listing Type</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem', textTransform: 'capitalize' }}>
+                          {selectedRequest.listingType === "sale" ? "Sale" : "Rent"}
                         </div>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Bedrooms</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem' }}>
+                          {selectedRequest.bedrooms || 0}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Bathrooms</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem' }}>
+                          {selectedRequest.bathrooms || 0}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Floors</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem' }}>
+                          {selectedRequest.floors || "N/A"}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Parking Spaces</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem' }}>
+                          {selectedRequest.parking || 0}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Construction Year</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem' }}>
+                          {selectedRequest.constructionYear || "N/A"}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                        padding: '16px',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #2B5BBA'
+                      }}>
+                        <div style={{ color: '#666', fontSize: '0.85rem', marginBottom: '4px' }}>Area</div>
+                        <div style={{ color: '#1E3A5F', fontWeight: '700', fontSize: '1.1rem' }}>
+                          {selectedRequest.area?.sqft ? `${selectedRequest.area.sqft} sqft` :
+                           selectedRequest.area?.ana ? `${selectedRequest.area.ana} Ana` :
+                           selectedRequest.area?.ropani ? `${selectedRequest.area.ropani} Ropani` : "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Amenities Section */}
+                  {selectedRequest.amenities && selectedRequest.amenities.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px', fontSize: '1.1rem' }}>
+                        ✨ Amenities
+                      </h6>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        {selectedRequest.amenities.map((amenity, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              background: 'linear-gradient(135deg, #E8F0FE 0%, #D0E4FF 100%)',
+                              padding: '10px 16px',
+                              borderRadius: '20px',
+                              color: '#2B5BBA',
+                              fontWeight: '600',
+                              fontSize: '0.9rem'
+                            }}
+                          >
+                            ✓ {amenity}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nearby Facilities Section */}
+                  {(selectedRequest.nearby?.education?.length > 0 || 
+                    selectedRequest.nearby?.food?.length > 0 || 
+                    selectedRequest.nearby?.health?.length > 0) && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px', fontSize: '1.1rem' }}>
+                        🏢 Nearby Facilities
+                      </h6>
+
+                      {selectedRequest.nearby?.education?.length > 0 && (
+                        <div style={{ marginBottom: '16px' }}>
+                          <h6 style={{ color: '#2B5BBA', marginBottom: '8px', fontWeight: '600' }}>🎓 Education</h6>
+                          <div style={{ display: 'grid', gap: '8px' }}>
+                            {selectedRequest.nearby.education.map((item, idx) => (
+                              <div key={idx} style={{
+                                background: '#F5F5F5',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                borderLeft: '4px solid #2B5BBA'
+                              }}>
+                                <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{item.name}</div>
+                                <small style={{ color: '#666' }}>
+                                  {item.type} • {item.distanceKm?.toFixed(2)}km away
+                                </small>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedRequest.nearby?.food?.length > 0 && (
+                        <div style={{ marginBottom: '16px' }}>
+                          <h6 style={{ color: '#2B5BBA', marginBottom: '8px', fontWeight: '600' }}>🍽️ Food & Dining</h6>
+                          <div style={{ display: 'grid', gap: '8px' }}>
+                            {selectedRequest.nearby.food.map((item, idx) => (
+                              <div key={idx} style={{
+                                background: '#F5F5F5',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                borderLeft: '4px solid #2B5BBA'
+                              }}>
+                                <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{item.name}</div>
+                                <small style={{ color: '#666' }}>
+                                  {item.type} • {item.distanceKm?.toFixed(2)}km away
+                                </small>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedRequest.nearby?.health?.length > 0 && (
+                        <div style={{ marginBottom: '16px' }}>
+                          <h6 style={{ color: '#2B5BBA', marginBottom: '8px', fontWeight: '600' }}>🏥 Healthcare</h6>
+                          <div style={{ display: 'grid', gap: '8px' }}>
+                            {selectedRequest.nearby.health.map((item, idx) => (
+                              <div key={idx} style={{
+                                background: '#F5F5F5',
+                                padding: '12px',
+                                borderRadius: '8px',
+                                borderLeft: '4px solid #2B5BBA'
+                              }}>
+                                <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{item.name}</div>
+                                <small style={{ color: '#666' }}>
+                                  {item.type} • {item.distanceKm?.toFixed(2)}km away
+                                </small>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Submitted Info */}
+                  <div style={{
+                    background: '#F5F5F5',
+                    padding: '16px',
+                    borderRadius: '10px',
+                    marginBottom: '24px',
+                    borderLeft: '4px solid #2B5BBA'
+                  }}>
+                    <small style={{ color: '#666' }}>
+                      <strong>Submitted by:</strong> {selectedRequest.postedBy?.name || "Unknown User"} • <strong>On:</strong> {formatDate(selectedRequest.createdAt)}
+                    </small>
+                  </div>
+
+                  {/* Media Summary */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #E8F0FE 0%, #F5F5F5 100%)',
+                    padding: '16px',
+                    borderRadius: '10px',
+                    marginBottom: '24px'
+                  }}>
+                    <h6 style={{ color: '#1E3A5F', fontWeight: '700', marginBottom: '12px' }}>📸 Media Summary</h6>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+                      <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📷</div>
+                        <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{selectedRequest.media?.propertyPhotos?.length || 0}</div>
+                        <small style={{ color: '#666' }}>Property Photos</small>
+                      </div>
+                      <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📹</div>
+                        <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{selectedRequest.media?.propertyVideos?.length || 0}</div>
+                        <small style={{ color: '#666' }}>Property Videos</small>
+                      </div>
+                      <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>🛣️</div>
+                        <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{selectedRequest.media?.roadPhotos?.length || 0}</div>
+                        <small style={{ color: '#666' }}>Road Photos</small>
+                      </div>
+                      <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>🛣️📹</div>
+                        <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{selectedRequest.media?.roadVideos?.length || 0}</div>
+                        <small style={{ color: '#666' }}>Road Videos</small>
+                      </div>
+                      <div style={{ textAlign: 'center', padding: '12px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📄</div>
+                        <div style={{ fontWeight: '600', color: '#1E3A5F' }}>{selectedRequest.media?.lalpurjaPhotos?.length || 0}</div>
+                        <small style={{ color: '#666' }}>Lalpurja Docs</small>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
-      {/* Photo Gallery Modal */}
-      {showGallery && selectedRequest && (
-        <div
-          className="modal fade show"
-          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}
-          onClick={() => setShowGallery(false)}
-        >
-          <div className="modal-dialog modal-xl modal-dialog-scrollable" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Media Gallery - {selectedRequest.title}</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowGallery(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                {/* Lalpurja Photos */}
-                {selectedRequest.media?.lalpurjaPhotos?.length > 0 && (
-                  <div className="mb-4">
-                    <h6>Lalpurja Photos ({selectedRequest.media.lalpurjaPhotos.length})</h6>
-                    <div className="row g-2">
-                      {selectedRequest.media.lalpurjaPhotos.map((url, idx) => (
-                        <div key={idx} className="col-md-3">
-                          <img src={url} className="img-fluid rounded" alt={`Lalpurja ${idx + 1}`} style={{ height: "200px", objectFit: "cover", width: "100%" }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Property Photos */}
-                {selectedRequest.media?.propertyPhotos?.length > 0 && (
-                  <div className="mb-4">
-                    <h6>Property Photos ({selectedRequest.media.propertyPhotos.length})</h6>
-                    <div className="row g-2">
-                      {selectedRequest.media.propertyPhotos.map((url, idx) => (
-                        <div key={idx} className="col-md-3">
-                          <img src={url} className="img-fluid rounded" alt={`Property ${idx + 1}`} style={{ height: "200px", objectFit: "cover", width: "100%" }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Property Videos */}
-                {selectedRequest.media?.propertyVideos?.length > 0 && (
-                  <div className="mb-4">
-                    <h6>Property Videos ({selectedRequest.media.propertyVideos.length})</h6>
-                    <div className="row g-2">
-                      {selectedRequest.media.propertyVideos.map((url, idx) => (
-                        <div key={idx} className="col-md-6">
-                          <video controls className="w-100 rounded" style={{ maxHeight: "400px" }}>
-                            <source src={url} type="video/mp4" />
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Road Photos */}
-                {selectedRequest.media?.roadPhotos?.length > 0 && (
-                  <div className="mb-4">
-                    <h6>Road Photos ({selectedRequest.media.roadPhotos.length})</h6>
-                    <div className="row g-2">
-                      {selectedRequest.media.roadPhotos.map((url, idx) => (
-                        <div key={idx} className="col-md-3">
-                          <img src={url} className="img-fluid rounded" alt={`Road ${idx + 1}`} style={{ height: "200px", objectFit: "cover", width: "100%" }} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Road Videos */}
-                {selectedRequest.media?.roadVideos?.length > 0 && (
-                  <div className="mb-4">
-                    <h6>Road Videos ({selectedRequest.media.roadVideos.length})</h6>
-                    <div className="row g-2">
-                      {selectedRequest.media.roadVideos.map((url, idx) => (
-                        <div key={idx} className="col-md-6">
-                          <video controls className="w-100 rounded" style={{ maxHeight: "400px" }}>
-                            <source src={url} type="video/mp4" />
-                            Your browser does not support the video tag.
-                          </video>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {(!selectedRequest.media || 
-                  (!selectedRequest.media.lalpurjaPhotos?.length && 
-                   !selectedRequest.media.propertyPhotos?.length && 
-                   !selectedRequest.media.propertyVideos?.length &&
-                   !selectedRequest.media.roadPhotos?.length &&
-                   !selectedRequest.media.roadVideos?.length)) && (
-                  <div className="alert alert-info">No media files available.</div>
-                )}
-              </div>
-              <div className="modal-footer">
-                {selectedRequest.status === "pending" && (
-                  <>
-                    <button
-                      className="btn btn-success"
-                      onClick={() => {
-                        handleApprove(selectedRequest._id);
-                        setShowGallery(false);
-                      }}
-                    >
-                      Approve Property
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => {
-                        handleReject(selectedRequest._id);
-                        setShowGallery(false);
-                      }}
-                    >
-                      Reject Property
-                    </button>
-                  </>
-                )}
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowGallery(false)}
-                >
-                  Close
-                </button>
+                <div className="modal-footer" style={{ padding: '16px 24px', borderTop: '1px solid #E0E0E0' }}>
+                  {selectedRequest.status === "pending" && (
+                    <>
+                      <button
+                        className="btn btn-enhanced btn-approve"
+                        onClick={() => {
+                          handleApprove(selectedRequest._id);
+                          setShowDetailedView(false);
+                        }}
+                      >
+                        <FiCheckCircle size={18} /> Approve Property
+                      </button>
+                      <button
+                        className="btn btn-enhanced btn-reject"
+                        onClick={() => {
+                          handleReject(selectedRequest._id);
+                          setShowDetailedView(false);
+                        }}
+                      >
+                        <FiXCircle size={18} /> Reject Property
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    className="btn btn-enhanced btn-outline-enhanced"
+                    onClick={() => setShowDetailedView(false)}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </AdminLayout>
+        )}
+      </AdminLayout>
+    </>
   );
 };
 

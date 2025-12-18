@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { requestPasswordReset, resetPassword } from "../api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import oImg from "../assets/o.jpg";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function ForgotPassword() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [step, setStep] = useState(1); // 1: email, 2: code & new password
   const [email, setEmail] = useState("");

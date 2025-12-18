@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaSearch } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
 
 const nepalCities = [
   "Kathmandu",
@@ -28,6 +29,7 @@ const COLORS = {
 };
 
 export default function AdvancedSearchBar({ onSearch }) {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState({
     propertyType: "",
     location: "",
@@ -59,7 +61,7 @@ export default function AdvancedSearchBar({ onSearch }) {
         >
           <FaSearch />
         </div>
-        <h5 className="mb-0" style={{ color: COLORS.dark }}>Search Properties</h5>
+        <h5 className="mb-0" style={{ color: COLORS.dark }}>{t('search')} {t('properties')}</h5>
       </div>
       <form onSubmit={handleSearch}>
         <div className="row g-3">
@@ -71,14 +73,14 @@ export default function AdvancedSearchBar({ onSearch }) {
               name="search"
               value={filters.search}
               onChange={handleChange}
-              placeholder="Enter keywords"
+              placeholder={t('searchPlaceholder')}
               className="form-control"
               style={{ borderColor: COLORS.border }}
             />
           </div>
 
           <div className="col-md-2">
-            <label htmlFor="propertyType" className="form-label fw-semibold" style={{ color: COLORS.text }}>Property Type</label>
+            <label htmlFor="propertyType" className="form-label fw-semibold" style={{ color: COLORS.text }}>{t('propertyType')}</label>
             <select
               id="propertyType"
               name="propertyType"
@@ -97,7 +99,7 @@ export default function AdvancedSearchBar({ onSearch }) {
           </div>
 
           <div className="col-md-2">
-            <label htmlFor="location" className="form-label fw-semibold" style={{ color: COLORS.text }}>Location</label>
+            <label htmlFor="location" className="form-label fw-semibold" style={{ color: COLORS.text }}>{t('location')}</label>
             <select
               id="location"
               name="location"
@@ -116,7 +118,7 @@ export default function AdvancedSearchBar({ onSearch }) {
           </div>
 
           <div className="col-md-2">
-            <label htmlFor="priceMin" className="form-label fw-semibold" style={{ color: COLORS.text }}>Min Price</label>
+            <label htmlFor="priceMin" className="form-label fw-semibold" style={{ color: COLORS.text }}>Min {t('price')}</label>
             <input
               type="number"
               id="priceMin"
@@ -130,7 +132,7 @@ export default function AdvancedSearchBar({ onSearch }) {
           </div>
 
           <div className="col-md-2">
-            <label htmlFor="priceMax" className="form-label fw-semibold" style={{ color: COLORS.text }}>Max Price</label>
+            <label htmlFor="priceMax" className="form-label fw-semibold" style={{ color: COLORS.text }}>Max {t('price')}</label>
             <input
               type="number"
               id="priceMax"

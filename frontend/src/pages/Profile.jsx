@@ -1,8 +1,10 @@
 // src/pages/Profile.jsx
 import React, { useEffect, useState } from "react";
 import { getMe, updateProfile } from "../api/auth";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Profile() {
+  const { t } = useLanguage();
   const token = localStorage.getItem("token");
   const [user, setUser] = useState(null);
   const [edit, setEdit] = useState({ email: "", phone: "" });
@@ -55,7 +57,7 @@ export default function Profile() {
   if (!user) return (
     <div className="loading-container">
       <div className="loading-spinner"></div>
-      <div className="loading-text">Loading profile...</div>
+      <div className="loading-text">{t('loadingProfile')}</div>
     </div>
   );
 

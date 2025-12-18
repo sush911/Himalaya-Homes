@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/navbar";
+import { LanguageProvider } from "./context/LanguageContext";
 // Use safer new homepage while original is being cleaned
 import Homepage from "./pages/HomePageNew";
 import Login from "./pages/Login";
@@ -25,9 +26,10 @@ import AdminRoute from "./AdminRoute";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <Navbar />
+    <LanguageProvider>
+      <BrowserRouter>
+        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+          <Navbar />
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Homepage />} />
@@ -52,5 +54,6 @@ export default function App() {
         <Footer />
       </div>
     </BrowserRouter>
+    </LanguageProvider>
   );
 }

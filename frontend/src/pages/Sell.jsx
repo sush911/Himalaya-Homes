@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { submitPropertyRequest, uploadFiles, fetchNearby } from "../api/property";
+import { useLanguage } from "../context/LanguageContext";
 
 const propertyTypes = ["house", "building", "apartment", "land"];
 const listingTypes = [
@@ -91,6 +92,7 @@ const Sell = () => {
     bedrooms: 0,
     bathrooms: 0,
     floors: 0,
+    parking: 0,
     constructionYear: "",
     areaSqft: "",
     areaAna: "",
@@ -190,6 +192,7 @@ const Sell = () => {
         bedrooms: Number(form.bedrooms) || 0,
         bathrooms: Number(form.bathrooms) || 0,
         floors: Number(form.floors) || 0,
+        parking: Number(form.parking) || 0,
         constructionYear: form.constructionYear ? Number(form.constructionYear) : undefined,
         area: {
           sqft: form.areaSqft ? Number(form.areaSqft) : undefined,
@@ -220,6 +223,7 @@ const Sell = () => {
         bedrooms: 0,
         bathrooms: 0,
         floors: 0,
+        parking: 0,
         constructionYear: "",
         areaSqft: "",
         areaAna: "",
@@ -614,6 +618,16 @@ const Sell = () => {
                       Bathrooms
                     </label>
                     <input name="bathrooms" type="number" value={form.bathrooms} onChange={handleChange} className="form-input" placeholder="4" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="input-label">
+                      <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 7 15.5 7 14 7.67 14 8.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 7 8.5 7 7 7.67 7 8.5 7.67 10 8.5 10z" />
+                      </svg>
+                      Parking
+                    </label>
+                    <input name="parking" type="number" value={form.parking} onChange={handleChange} className="form-input" placeholder="2" />
                   </div>
 
                   <div className="form-group-custom">

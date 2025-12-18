@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { loginUser } from "../api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import oImg from "../assets/o.jpg";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Login() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -270,12 +272,12 @@ export default function Login() {
           {/* Left Side - Login Card */}
           <div className="auth-left">
             <div className="card-auth">
-              <h3 className="auth-heading">Welcome back</h3>
-              <div className="auth-sub">Login to access saved properties, contact owners and post listings.</div>
+              <h3 className="auth-heading">{t('login')}</h3>
+              <div className="auth-sub">{t('enterEmail')}</div>
 
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                  <label className="form-label">Email</label>
+                  <label className="form-label">{t('email')}</label>
                   <input 
                     name="email" 
                     value={form.email} 
@@ -288,7 +290,7 @@ export default function Login() {
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Password</label>
+                  <label className="form-label">{t('enterPassword')}</label>
                   <div className="password-wrapper">
                     <input 
                       name="password" 
@@ -320,12 +322,12 @@ export default function Login() {
                 </div>
 
                 <button className="btn-submit" type="submit">
-                  {loading ? "Signing in..." : "Login"}
+                  {loading ? t('loading') : t('login')}
                 </button>
 
                 <div className="links-container">
-                  <Link to="/forgot" className="link-primary">Forgot password?</Link>
-                  <Link to="/signup" className="link-primary">Create account</Link>
+                  <Link to="/forgot" className="link-primary">{t('forgotPassword')}</Link>
+                  <Link to="/signup" className="link-primary">{t('dontHaveAccount')}</Link>
                 </div>
               </form>
             </div>

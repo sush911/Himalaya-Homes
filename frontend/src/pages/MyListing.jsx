@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { getMyProperties, getMyRequests } from "../api/property";
 import { Button } from "react-bootstrap";
 import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
 
 const PropertyCard = ({ property }) => {
+  const { t } = useLanguage();
   const mainImage = property.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300";
 
   return (

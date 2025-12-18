@@ -581,6 +581,7 @@ export const approvePropertyRequest = async (req, res) => {
       bedrooms: request.bedrooms || 0,
       bathrooms: request.bathrooms || 0,
       floors: request.floors || 0,
+      parking: request.parking || 0,
       constructionYear: request.constructionYear,
       area: request.area || {},
       amenities: request.amenities || [],

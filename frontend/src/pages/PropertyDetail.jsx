@@ -5,8 +5,10 @@ import "leaflet/dist/leaflet.css";
 import { getPropertyById, getContactInfo, toggleFavorite, reportProperty } from "../api/property";
 import { Modal, Button, Carousel } from "react-bootstrap";
 import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaStar } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
 
 const PropertyDetail = () => {
+  const { t } = useLanguage();
   const { id } = useParams();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -192,6 +194,9 @@ const PropertyDetail = () => {
                   )}
                   {property.floors > 0 && (
                     <p><strong>Floors:</strong> {property.floors}</p>
+                  )}
+                  {property.parking > 0 && (
+                    <p><strong>Parking:</strong> {property.parking}</p>
                   )}
                 </div>
                 <div className="col-md-6">

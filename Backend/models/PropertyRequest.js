@@ -25,6 +25,7 @@ const propertyRequestSchema = new mongoose.Schema({
   bedrooms: { type: Number, min: 0 },
   bathrooms: { type: Number, min: 0 },
   floors: { type: Number, min: 0 },
+  parking: { type: Number, min: 0 },
   constructionYear: { type: Number },
   area: {
     sqft: { type: Number },

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getFavorites } from "../api/property";
 import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
 
 const PropertyCard = ({ property }) => {
+  const { t } = useLanguage();
   const mainImage = property.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300";
 
   return (

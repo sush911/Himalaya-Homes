@@ -3,8 +3,10 @@ import React, { useState } from "react";
 import { registerUser } from "../api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import hvImg from "../assets/hv.jpg";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Signup() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     firstName: "", lastName: "", phone: "", citizenshipNumber: "", email: "", password: ""

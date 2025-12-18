@@ -1,9 +1,11 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { FiLayers, FiUsers, FiMessageCircle, FiHome, FiLogOut, FiSearch } from "react-icons/fi";
+import { useLanguage } from "../context/LanguageContext";
 import "../styles/Admin.css";
 
 export default function AdminLayout({ title, children, controls }) {
+  const { t } = useLanguage();
   const loc = useLocation();
   return (
     <div className="container py-4">

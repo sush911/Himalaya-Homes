@@ -6,9 +6,11 @@ import AdvancedSearchBar from "../components/AdvancedSearchBar";
 import PropertyCard from "../components/PropertyCard";
 import { useNavigate } from "react-router-dom";
 import { listProperties } from "../api/property";
+import { useLanguage } from "../context/LanguageContext";
 
 const Homepage = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -61,7 +63,7 @@ const Homepage = () => {
       >
         <div className="hero-overlay p-4">
           <h1 className="hero-title">Himalaya Homes</h1>
-          <p className="hero-subtitle">Buy, Sell, Rent and Explore Properties in Nepal</p>
+          <p className="hero-subtitle">{t('buySellRent')}</p>
 
           <div className="mt-4">
             <AdvancedSearchBar onSearch={handleSearch} />
@@ -71,30 +73,20 @@ const Homepage = () => {
 
       <section className="container py-5">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h3 className="mb-0">New Arrivals</h3>
-          <a href="/buy" className="text-decoration-none">View all</a>
+          <h3 className="mb-0">{t('newArrivals')}</h3>
+          <a href="/buy" className="text-decoration-none">{t('viewAll')}</a>
         </div>
 
         <div className="row g-3">
           {loading ? (
-            <div className="col-12"><div className="text-center py-4">Loading...</div></div>
+            <div className="col-12"><div className="text-center py-4">{t('loading')}</div></div>
           ) : newArrivals.length === 0 ? (
-            <div className="col-12"><div className="alert alert-info">No new properties</div></div>
+            <div className="col-12"><div className="alert alert-info">{t('noNewProperties')}</div></div>
           ) : (
             newArrivals.map((p) => <PropertyCard key={p._id} property={p} />)
           )}
         </div>
       </section>
-
-      <footer className="footer text-white py-4">
-        <div className="container d-flex justify-content-between flex-wrap">
-          <div><p className="mb-0">Thamel, Kathmandu</p></div>
-          <div className="text-end">
-            <p className="mb-1">Himalayahomes@gmail.com</p>
-            <p className="mb-0">98882882</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
