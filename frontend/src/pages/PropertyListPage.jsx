@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { getContactInfo, listProperties, reportProperty, toggleFavorite } from "../api/property";
 import { Modal, Button } from "react-bootstrap";
 import AdvancedSearchBar from "../components/AdvancedSearchBar";
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaBuilding, FaStar, FaPhone, FaEnvelope, FaUser } from "react-icons/fa";
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaBuilding, FaStar, FaPhone, FaEnvelope, FaUser, FaCheckCircle } from "react-icons/fa";
 
 const COLORS = {
   primary: "#2B5BBA",
@@ -40,6 +40,12 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
     <div className="property-card-compact">
       <div className="property-image-wrapper-compact">
         <img src={mainImage} className="property-image-compact" alt={item.title} onError={(e) => (e.target.src = "https://via.placeholder.com/400x300")} />
+        {item.isVerified && (
+          <div className="verified-badge-compact">
+            <FaCheckCircle size={16} style={{ marginRight: '4px' }} />
+            Verified
+          </div>
+        )}
         <button className={`favorite-btn-compact ${isAnimating ? 'animate' : ''}`} onClick={handleFavoriteClick}>
           <FaHeart size={18} style={{ color: isFavorite ? "#dc3545" : "#FFFFFF" }} />
         </button>
@@ -47,9 +53,18 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
       
       <div className="property-card-body-compact">
         <div className="rating-stars-compact">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <FaStar key={star} style={{ color: '#FFC107', fontSize: '12px' }} />
-          ))}
+          {item.averageRating ? (
+            <>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <FaStar key={star} style={{ color: star <= Math.round(item.averageRating) ? '#FFC107' : '#ddd', fontSize: '12px' }} />
+              ))}
+              <span style={{ marginLeft: '8px', fontSize: '12px', fontWeight: 'bold' }}>
+                {item.averageRating.toFixed(1)} ({item.totalReviews})
+              </span>
+            </>
+          ) : (
+            <span style={{ fontSize: '12px', color: '#999' }}>No ratings</span>
+          )}
         </div>
 
         <div className="property-price-compact">Rs {item.price?.toLocaleString()}</div>
@@ -228,6 +243,9 @@ const PropertyListPage = ({ listingType }) => {
       .property-image-wrapper-compact { position: relative; height: 180px; overflow: hidden; background: ${COLORS.gray}; }
       .property-image-compact { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
       .property-card-compact:hover .property-image-compact { transform: scale(1.08); }
+      
+      .verified-badge-compact { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3); animation: badgeSlideIn 0.4s ease; }
+      @keyframes badgeSlideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
       
       .favorite-btn-compact { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(8px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15); }
       .favorite-btn-compact:hover { transform: scale(1.1); box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); }

@@ -25,7 +25,7 @@ const formatFileSize = (bytes) => {
   return bytes + " bytes";
 };
 
-const FileInput = ({ label, name, accept, multiple = true, onChange, helper, maxSize, maxCount }) => {
+const FileInput = ({ label, name, accept, multiple = true, onChange, helper, maxSize, maxCount, selectedCount = 0 }) => {
   const isVideo = accept.includes("video");
   const fileSizeLimit = isVideo ? MAX_VIDEO_SIZE : MAX_PHOTO_SIZE;
   const fileSizeLimitDisplay = isVideo ? "500 MB" : "50 MB";
@@ -57,8 +57,13 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
       </div>
-      <div className="upload-label">{label} {maxCount && `(${maxCount} max)`}</div>
+      <div className="upload-label">
+        {label} {maxCount && `(${selectedCount}/${maxCount} files)`}
+      </div>
       <div className="upload-helper">Click or drag file to this area to upload</div>
+      <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
+        Max file size: {fileSizeLimitDisplay}
+      </div>
       <input
         type="file"
         accept={accept}
@@ -695,6 +700,7 @@ const Sell = () => {
                   accept="image/*" 
                   onChange={handleFiles}
                   maxCount={4}
+                  selectedCount={mediaFiles.lalpurjaPhotos.length}
                 />
                 <FileInput 
                   label="Property Photo Upload" 
@@ -702,6 +708,7 @@ const Sell = () => {
                   accept="image/*" 
                   onChange={handleFiles}
                   maxCount={20}
+                  selectedCount={mediaFiles.propertyPhotos.length}
                 />
                 <FileInput 
                   label="Property Video Upload" 
@@ -709,6 +716,7 @@ const Sell = () => {
                   accept="video/*" 
                   onChange={handleFiles}
                   maxCount={2}
+                  selectedCount={mediaFiles.propertyVideos.length}
                 />
                 <FileInput 
                   label="Property Road Photo Upload" 
@@ -716,6 +724,7 @@ const Sell = () => {
                   accept="image/*" 
                   onChange={handleFiles}
                   maxCount={6}
+                  selectedCount={mediaFiles.roadPhotos.length}
                 />
                 <FileInput 
                   label="Property Road Video Upload" 
@@ -723,6 +732,7 @@ const Sell = () => {
                   accept="video/*" 
                   onChange={handleFiles}
                   maxCount={2}
+                  selectedCount={mediaFiles.roadVideos.length}
                 />
               </div>
 

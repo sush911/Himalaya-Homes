@@ -1,10 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import { Modal } from 'react-bootstrap';
 import { useLanguage } from '../context/LanguageContext';
+import PrivacyPolicy from '../pages/PrivacyPolicy';
+import TermsOfService from '../pages/TermsOfService';
+import FAQ from '../pages/FAQ';
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
   return (
     <footer className="footer" style={{ backgroundColor: "#1a1a2e", color: "#fff", padding: "3rem 0 1rem", marginTop: "auto" }}>
       <div className="container">
@@ -35,8 +42,33 @@ const Footer = () => {
             <h6 className="mb-3">{t('company')}</h6>
             <ul className="list-unstyled">
               <li className="mb-2"><Link to="/contact" style={{ color: "#fff", textDecoration: "none" }}>{t('contact')}</Link></li>
-              <li className="mb-2"><Link to="/privacy" style={{ color: "#fff", textDecoration: "none" }}>{t('privacyPolicy')}</Link></li>
-              <li className="mb-2"><Link to="/terms" style={{ color: "#fff", textDecoration: "none" }}>{t('termsOfService')}</Link></li>
+              <li className="mb-2">
+                <button
+                  onClick={() => setShowPrivacy(true)}
+                  style={{ background: "none", border: "none", color: "#fff", textDecoration: "none", cursor: "pointer", padding: 0 }}
+                  className="text-start"
+                >
+                  {language === 'np' ? 'गोपनीयता नीति' : 'Privacy Policy'}
+                </button>
+              </li>
+              <li className="mb-2">
+                <button
+                  onClick={() => setShowTerms(true)}
+                  style={{ background: "none", border: "none", color: "#fff", textDecoration: "none", cursor: "pointer", padding: 0 }}
+                  className="text-start"
+                >
+                  {language === 'np' ? 'सेवा की शर्तें' : 'Terms of Service'}
+                </button>
+              </li>
+              <li className="mb-2">
+                <button
+                  onClick={() => setShowFAQ(true)}
+                  style={{ background: "none", border: "none", color: "#fff", textDecoration: "none", cursor: "pointer", padding: 0 }}
+                  className="text-start"
+                >
+                  {language === 'np' ? 'बारम्बार सोधिएका प्रश्न' : 'FAQ'}
+                </button>
+              </li>
             </ul>
           </div>
           
@@ -69,6 +101,36 @@ const Footer = () => {
           <p className="mb-0">&copy; 2024 Himalaya Homes. All rights reserved.</p>
         </div>
       </div>
+
+      {/* Privacy Policy Modal */}
+      <Modal show={showPrivacy} onHide={() => setShowPrivacy(false)} size="lg" scrollable>
+        <Modal.Header closeButton>
+          <Modal.Title>{language === 'np' ? 'गोपनीयता नीति' : 'Privacy Policy'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <PrivacyPolicy />
+        </Modal.Body>
+      </Modal>
+
+      {/* Terms of Service Modal */}
+      <Modal show={showTerms} onHide={() => setShowTerms(false)} size="lg" scrollable>
+        <Modal.Header closeButton>
+          <Modal.Title>{language === 'np' ? 'सेवा की शर्तें' : 'Terms of Service'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <TermsOfService />
+        </Modal.Body>
+      </Modal>
+
+      {/* FAQ Modal */}
+      <Modal show={showFAQ} onHide={() => setShowFAQ(false)} size="lg" scrollable>
+        <Modal.Header closeButton>
+          <Modal.Title>{language === 'np' ? 'बारम्बार सोधिएका प्रश्न' : 'FAQ'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <FAQ />
+        </Modal.Body>
+      </Modal>
     </footer>
   );
 };

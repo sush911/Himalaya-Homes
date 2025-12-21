@@ -16,6 +16,9 @@ import {
   toggleFavorite,
   uploadToCloudinary,
   fetchNearbyOverpass,
+  addReview,
+  getReviews,
+  verifyProperty,
 } from "../controllers/propertyController.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
 import multer from "multer";
@@ -52,6 +55,13 @@ router.post("/:id/report", protect, reportProperty);
 
 // delete property (admin only)
 router.delete("/:id", protect, requireAdmin, deleteProperty);
+
+// reviews and ratings
+router.post("/:id/reviews", protect, addReview);
+router.get("/:id/reviews", getReviews);
+
+// verify property (admin only)
+router.patch("/:id/verify", protect, requireAdmin, verifyProperty);
 
 // public listings
 router.get("/:id/contact", protect, getContactInfo);

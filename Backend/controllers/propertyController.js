@@ -867,3 +867,91 @@ export const deleteProperty = async (req, res) => {
   }
 };
 
+// Add review/rating to property
+export const addReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const userId = req.user.id;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const property = await Property.findById(id);
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    // Check if user already reviewed this property
+    const existingReview = property.reviews.find(
+      (review) => review.user.toString() === userId
+    );
+
+    if (existingReview) {
+      // Update existing review
+      existingReview.rating = rating;
+      existingReview.comment = comment || "";
+      existingReview.createdAt = new Date();
+    } else {
+      // Add new review
+      property.reviews.push({
+        user: userId,
+        rating,
+        comment: comment || "",
+      });
+    }
+
+    // Calculate average rating
+    const totalRating = property.reviews.reduce((sum, review) => sum + review.rating, 0);
+    property.averageRating = parseFloat((totalRating / property.reviews.length).toFixed(1));
+    property.totalReviews = property.reviews.length;
+
+    await property.save();
+
+    const updatedProperty = await Property.findById(id).populate("reviews.user", "name email");
+    res.json({ message: "Review added successfully", property: updatedProperty });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Failed to add review" });
+  }
+};
+
+// Get reviews for a property
+export const getReviews = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const property = await Property.findById(id).populate("reviews.user", "name email");
+    
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    res.json({
+      averageRating: property.averageRating,
+      totalReviews: property.totalReviews,
+      reviews: property.reviews,
+    });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Failed to get reviews" });
+  }
+};
+
+// Mark property as verified (admin only)
+export const verifyProperty = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const property = await Property.findById(id);
+    
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
+    }
+
+    property.isVerified = true;
+    await property.save();
+
+    res.json({ message: "Property verified successfully", property });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Failed to verify property" });
+  }
+};
+

@@ -20,6 +20,9 @@ import AdminAgents from "./pages/AdminAgents";
 import PropertyDetail from "./pages/PropertyDetail";
 import Contact from "./pages/Contact";
 import Agents from "./pages/Agents";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import FAQ from "./pages/FAQ";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
@@ -49,6 +52,9 @@ export default function App() {
             <Route path="/admin/agents" element={<AdminRoute><AdminAgents /></AdminRoute>} />
             <Route path="/agents" element={<Agents />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/faq" element={<FAQ />} />
           </Routes>
         </main>
         <Footer />

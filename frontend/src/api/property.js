@@ -58,6 +58,19 @@ export const getContactInfo = (id, token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const addReview = (id, rating, comment, token) =>
+  api.post(`/${id}/reviews`, { rating, comment }, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const getReviews = (id) =>
+  api.get(`/${id}/reviews`);
+
+export const verifyProperty = (id, token) =>
+  api.patch(`/${id}/verify`, null, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const uploadFiles = (files, folder, token) => {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));

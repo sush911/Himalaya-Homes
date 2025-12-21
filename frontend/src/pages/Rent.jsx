@@ -5,3 +5,4 @@ const Rent = () => <PropertyListPage listingType="rent" />;
 
 export default Rent;
 
+    
