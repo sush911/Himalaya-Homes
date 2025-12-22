@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/navbar";
 import { LanguageProvider } from "./context/LanguageContext";
-// Use safer new homepage while original is being cleaned
+// 
 import Homepage from "./pages/HomePageNew";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";

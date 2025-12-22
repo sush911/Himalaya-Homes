@@ -68,7 +68,7 @@ export const deleteAgent = async (req, res) => {
   try {
     const agent = await Agent.findById(req.params.id);
     if (!agent) return res.status(404).json({ message: "Agent not found" });
-    await agent.remove();
+    await Agent.findByIdAndDelete(req.params.id);
     res.json({ message: "Agent removed" });
   } catch (err) {
     res.status(400).json({ message: err.message });
