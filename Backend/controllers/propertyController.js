@@ -135,12 +135,9 @@ export const uploadToCloudinary = async (req, res) => {
           const uploadOptions = {
             folder,
             resource_type: isVideo ? "video" : "image",
+            timeout: 600000, // 10 minutes timeout for large files
+            chunk_size: isVideo ? 6000000 : undefined, // 6MB chunks for videos
           };
-
-          // For videos, also add format preservation
-          if (isVideo) {
-            uploadOptions.eager = [{ format: "mp4" }]; // Convert to mp4 for compatibility
-          }
 
           // #region agent log
           debugLog({

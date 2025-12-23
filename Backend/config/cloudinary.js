@@ -27,6 +27,7 @@ if (!cloudName || !apiKey || !apiSecret) {
     cloud_name: cloudName,
     api_key: apiKey,
     api_secret: apiSecret,
+    timeout: 600000, // 10 minutes timeout for large video uploads
   });
   console.log("✅ Cloudinary configured successfully");
 }

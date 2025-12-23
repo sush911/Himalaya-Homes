@@ -367,6 +367,12 @@ const Sell = () => {
           box-shadow: 0 0 0 3px rgba(43, 91, 186, 0.1);
         }
         
+        .upload-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 20px;
+        }
+        
         .upload-box {
           position: relative;
           border: 2px dashed #d0d0d0;
@@ -376,7 +382,6 @@ const Sell = () => {
           background: #fafafa;
           transition: all 0.3s;
           cursor: pointer;
-          margin-bottom: 16px;
         }
         
         .upload-box:hover {
@@ -539,6 +544,10 @@ const Sell = () => {
             grid-template-columns: 1fr;
           }
           
+          .upload-grid {
+            grid-template-columns: 1fr;
+          }
+          
           .sell-container {
             padding: 24px 16px;
           }
@@ -691,51 +700,6 @@ const Sell = () => {
                 </div>
               </div>
 
-              {/* Upload Section */}
-              <div className="form-section">
-                <h3 className="section-title">Upload Media</h3>
-                <FileInput 
-                  label="Lalpurja Upload" 
-                  name="lalpurjaPhotos" 
-                  accept="image/*" 
-                  onChange={handleFiles}
-                  maxCount={4}
-                  selectedCount={mediaFiles.lalpurjaPhotos.length}
-                />
-                <FileInput 
-                  label="Property Photo Upload" 
-                  name="propertyPhotos" 
-                  accept="image/*" 
-                  onChange={handleFiles}
-                  maxCount={20}
-                  selectedCount={mediaFiles.propertyPhotos.length}
-                />
-                <FileInput 
-                  label="Property Video Upload" 
-                  name="propertyVideos" 
-                  accept="video/*" 
-                  onChange={handleFiles}
-                  maxCount={2}
-                  selectedCount={mediaFiles.propertyVideos.length}
-                />
-                <FileInput 
-                  label="Property Road Photo Upload" 
-                  name="roadPhotos" 
-                  accept="image/*" 
-                  onChange={handleFiles}
-                  maxCount={6}
-                  selectedCount={mediaFiles.roadPhotos.length}
-                />
-                <FileInput 
-                  label="Property Road Video Upload" 
-                  name="roadVideos" 
-                  accept="video/*" 
-                  onChange={handleFiles}
-                  maxCount={2}
-                  selectedCount={mediaFiles.roadVideos.length}
-                />
-              </div>
-
               {/* Description Section */}
               <div className="form-section">
                 <h3 className="section-title">Fill out property description</h3>
@@ -810,13 +774,65 @@ const Sell = () => {
                   </ul>
                 </div>
               </div>
-
-              {/* Submit Button */}
-              <button className="btn-submit" type="submit" disabled={loading}>
-                {loading ? "Submitting..." : "Upload Property Listing"}
-              </button>
             </div>
           </div>
+
+          {/* Upload Media Section - Full Width */}
+          <div className="form-section" style={{ marginTop: '24px' }}>
+            <h3 className="section-title">Upload Media</h3>
+            <div className="upload-grid">
+              <FileInput 
+                label="Lalpurja Upload" 
+                name="lalpurjaPhotos" 
+                accept="image/*" 
+                multiple={true}
+                onChange={handleFiles}
+                maxCount={4}
+                selectedCount={mediaFiles.lalpurjaPhotos.length}
+              />
+              <FileInput 
+                label="Property Photo Upload" 
+                name="propertyPhotos" 
+                accept="image/*" 
+                multiple={true}
+                onChange={handleFiles}
+                maxCount={20}
+                selectedCount={mediaFiles.propertyPhotos.length}
+              />
+              <FileInput 
+                label="Property Video Upload" 
+                name="propertyVideos" 
+                accept="video/*" 
+                multiple={true}
+                onChange={handleFiles}
+                maxCount={2}
+                selectedCount={mediaFiles.propertyVideos.length}
+              />
+              <FileInput 
+                label="Property Road Photo Upload" 
+                name="roadPhotos" 
+                accept="image/*" 
+                multiple={true}
+                onChange={handleFiles}
+                maxCount={6}
+                selectedCount={mediaFiles.roadPhotos.length}
+              />
+              <FileInput 
+                label="Property Road Video Upload" 
+                name="roadVideos" 
+                accept="video/*" 
+                multiple={true}
+                onChange={handleFiles}
+                maxCount={2}
+                selectedCount={mediaFiles.roadVideos.length}
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <button className="btn-submit" type="submit" disabled={loading} style={{ marginTop: '24px' }}>
+            {loading ? "Submitting..." : "Upload Property Listing"}
+          </button>
         </form>
       </div>
     </>

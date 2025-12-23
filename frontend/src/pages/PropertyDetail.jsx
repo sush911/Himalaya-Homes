@@ -249,7 +249,8 @@ const PropertyDetail = () => {
           display: flex;
           gap: 40px;
           border-bottom: 2px solid #e0e0e0;
-          margin-bottom: 20px;
+          margin-bottom: 0;
+          flex-shrink: 0;
         }
 
         .figma-tab {
@@ -271,6 +272,8 @@ const PropertyDetail = () => {
         .figma-tab-content {
           flex: 1;
           overflow-y: auto;
+          padding-top: 20px;
+          min-height: 0;
         }
 
         .figma-photos-grid {
@@ -278,11 +281,12 @@ const PropertyDetail = () => {
           grid-template-columns: repeat(2, 1fr);
           gap: 15px;
           height: 100%;
+          align-content: start;
         }
 
         .figma-photo-item {
           position: relative;
-          height: 180px;
+          height: 200px;
           border-radius: 8px;
           overflow: hidden;
           cursor: pointer;
@@ -319,8 +323,7 @@ const PropertyDetail = () => {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 15px;
-          max-height: 100%;
-          overflow-y: auto;
+          align-content: start;
         }
 
         .figma-video {
@@ -334,6 +337,7 @@ const PropertyDetail = () => {
           height: 100%;
           border-radius: 8px;
           overflow: hidden;
+          min-height: 420px;
         }
 
         .figma-actions {
@@ -421,18 +425,18 @@ const PropertyDetail = () => {
 
         .figma-details-section {
           background: white;
-          padding: 30px;
-          border-radius: 16px;
+          padding: 30px 40px;
+          border-radius: 0;
           margin-top: 25px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          border: 1px solid #e8eaed;
+          box-shadow: none;
+          border: none;
         }
 
         .figma-section-title {
-          font-size: 20px;
+          font-size: 18px;
           font-weight: 700;
           color: #1a1a1a;
-          margin-bottom: 25px;
+          margin-bottom: 20px;
           padding-bottom: 0;
           border-bottom: none;
         }
@@ -441,62 +445,44 @@ const PropertyDetail = () => {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 0;
-          border: 1px solid #e8eaed;
-          border-radius: 12px;
-          overflow: hidden;
+          border: none;
         }
 
         .figma-detail-item {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 8px;
-          padding: 20px 24px;
+          display: grid;
+          grid-template-columns: 40px 1fr auto;
+          align-items: center;
+          gap: 12px;
+          padding: 16px 20px;
           background: white;
-          border-right: 1px solid #e8eaed;
+          border: none;
           border-bottom: 1px solid #e8eaed;
           transition: all 0.2s;
-          position: relative;
         }
 
-        .figma-detail-item:nth-child(3n) {
-          border-right: none;
-        }
-
-        .figma-detail-item:hover {
-          background: #f8f9fa;
+        .figma-detail-item:last-child {
+          border-bottom: 1px solid #e8eaed;
         }
 
         .figma-detail-icon {
-          color: #666;
-          font-size: 20px;
-          margin-bottom: 4px;
-        }
-
-        .figma-detail-text {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          width: 100%;
+          color: #999;
+          font-size: 22px;
+          flex-shrink: 0;
         }
 
         .figma-detail-label {
-          font-size: 13px;
-          color: #6c757d;
-          font-weight: 500;
+          font-size: 15px;
+          color: #666;
+          font-weight: 400;
+          text-align: left;
         }
 
         .figma-detail-value {
-          font-size: 16px;
+          font-size: 15px;
           font-weight: 600;
           color: #1a1a1a;
-          word-wrap: break-word;
-        }
-
-        .figma-detail-full-width {
-          grid-column: 1 / -1;
-          border-right: none;
-          border-bottom: none;
+          text-align: right;
+          white-space: nowrap;
         }
 
         .figma-nearby-section {
@@ -660,64 +646,95 @@ const PropertyDetail = () => {
               />
             </div>
 
-            {/* Right Side - Show All Photos + Map */}
-            <div className="figma-right" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              {/* Show All Photos Button */}
-              <div 
-                style={{ 
-                  height: '240px', 
-                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4))',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  backgroundImage: galleryImages[1] ? `url(${galleryImages[1].url})` : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  position: 'relative'
-                }}
-                onClick={() => openGallery(0)}
-              >
-                <div style={{ 
-                  position: 'absolute', 
-                  inset: 0, 
-                  background: 'rgba(0,0,0,0.5)', 
-                  borderRadius: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <FaImage size={32} color="white" />
-                  <div style={{ color: 'white', fontSize: '18px', fontWeight: '600', marginTop: '12px' }}>
-                    Show all
-                  </div>
-                  <div style={{ color: 'white', fontSize: '14px', marginTop: '4px' }}>
-                    {galleryImages.length} photos
-                  </div>
+            {/* Right Side - Tabs for Photos/Videos/Location */}
+            <div className="figma-right">
+              {/* Tabs */}
+              <div className="figma-tabs">
+                <div 
+                  className={`figma-tab ${activeTab === 'photos' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('photos')}
+                >
+                  Photos
+                </div>
+                <div 
+                  className={`figma-tab ${activeTab === 'videos' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('videos')}
+                >
+                  Video
+                </div>
+                <div 
+                  className={`figma-tab ${activeTab === 'location' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('location')}
+                >
+                  Location
                 </div>
               </div>
 
-              {/* Map */}
-              {coordinates && (
-                <div style={{ height: '245px', borderRadius: '12px', overflow: 'hidden' }}>
-                  <MapContainer
-                    center={[coordinates.lat, coordinates.lng]}
-                    zoom={15}
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer
-                      attribution='&copy; <a href="http://osm.org/copyright">OSM</a>'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <Marker position={[coordinates.lat, coordinates.lng]}>
-                      <Popup>{property.location?.address}</Popup>
-                    </Marker>
-                  </MapContainer>
-                </div>
-              )}
+              {/* Tab Content */}
+              <div className="figma-tab-content">
+                {/* Photos Tab */}
+                {activeTab === 'photos' && (
+                  <div className="figma-photos-grid">
+                    {galleryImages.slice(0, 3).map((img, idx) => (
+                      <div key={idx} className="figma-photo-item" onClick={() => openGallery(idx)}>
+                        <img src={img.url} alt={`Photo ${idx + 1}`} />
+                      </div>
+                    ))}
+                    {galleryImages.length > 3 && (
+                      <div className="figma-photo-item" onClick={() => openGallery(0)}>
+                        <img src={galleryImages[3]?.url || galleryImages[0]?.url} alt="More" />
+                        <div className="figma-show-all">
+                          <FaImage size={20} />
+                          Show all {galleryImages.length} photos
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Videos Tab */}
+                {activeTab === 'videos' && (
+                  <div className="figma-video-container">
+                    {property.media?.propertyVideos?.length > 0 ? (
+                      property.media.propertyVideos.map((videoUrl, idx) => (
+                        <video key={idx} className="figma-video" controls>
+                          <source src={videoUrl} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      ))
+                    ) : (
+                      <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
+                        No videos available
+                      </div>
+                    )}
+                    {property.media?.roadVideos?.length > 0 && property.media.roadVideos.map((videoUrl, idx) => (
+                      <video key={`road-${idx}`} className="figma-video" controls>
+                        <source src={videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    ))}
+                  </div>
+                )}
+
+                {/* Location Tab */}
+                {activeTab === 'location' && coordinates && (
+                  <div className="figma-map-container">
+                    <MapContainer
+                      center={[coordinates.lat, coordinates.lng]}
+                      zoom={15}
+                      style={{ height: "100%", width: "100%" }}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="http://osm.org/copyright">OSM</a>'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <Marker position={[coordinates.lat, coordinates.lng]}>
+                        <Popup>{property.location?.address}</Popup>
+                      </Marker>
+                    </MapContainer>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -765,108 +782,80 @@ const PropertyDetail = () => {
           <div className="figma-details-section">
             <h3 className="figma-section-title">Property details</h3>
             <div className="figma-details-grid">
-              {/* Total Area */}
+              {/* Row 1 */}
               {(property.area?.sqft || property.area?.ana || property.area?.ropani) && (
                 <div className="figma-detail-item">
                   <FaRulerCombined className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Total area</span>
-                    <span className="figma-detail-value">
-                      {property.area?.sqft ? `${property.area.sqft} sq ft` : ''}
-                      {property.area?.ana ? (property.area?.sqft ? ` (${property.area.ana} Ana)` : `${property.area.ana} Ana`) : ''}
-                      {property.area?.ropani ? ` ${property.area.ropani} Ropani` : ''}
-                    </span>
-                  </div>
+                  <span className="figma-detail-label">Total area</span>
+                  <span className="figma-detail-value">
+                    {property.area?.sqft ? `${property.area.sqft} sq ft` : ''}
+                    {property.area?.ana ? (property.area?.sqft ? ` (${property.area.ana} Ana)` : `${property.area.ana} Ana`) : ''}
+                    {property.area?.ropani ? ` ${property.area.ropani} Ropani` : ''}
+                  </span>
                 </div>
               )}
 
-              {/* Bedrooms */}
-              {property.bedrooms > 0 && (
-                <div className="figma-detail-item">
-                  <FaBed className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Bedrooms</span>
-                    <span className="figma-detail-value">{property.bedrooms}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Bathrooms */}
-              {property.bathrooms > 0 && (
-                <div className="figma-detail-item">
-                  <FaBath className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Bathrooms</span>
-                    <span className="figma-detail-value">{property.bathrooms}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Floors */}
               {property.floors > 0 && (
                 <div className="figma-detail-item">
                   <FaBuilding className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Floors</span>
-                    <span className="figma-detail-value">{property.floors}</span>
-                  </div>
+                  <span className="figma-detail-label">Elevator</span>
+                  <span className="figma-detail-value">{property.floors}</span>
                 </div>
               )}
 
-              {/* Parking */}
+              {property.floors > 0 && (
+                <div className="figma-detail-item">
+                  <FaBuilding className="figma-detail-icon" />
+                  <span className="figma-detail-label">Floor</span>
+                  <span className="figma-detail-value">{property.floors}rd</span>
+                </div>
+              )}
+
+              {/* Row 2 */}
+              {property.bedrooms > 0 && (
+                <div className="figma-detail-item">
+                  <FaBed className="figma-detail-icon" />
+                  <span className="figma-detail-label">Bedrooms</span>
+                  <span className="figma-detail-value">{property.bedrooms}</span>
+                </div>
+              )}
+
               {property.parking > 0 && (
                 <div className="figma-detail-item">
                   <FaParking className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Parking</span>
-                    <span className="figma-detail-value">Yes</span>
-                  </div>
+                  <span className="figma-detail-label">Parking</span>
+                  <span className="figma-detail-value">Yes</span>
                 </div>
               )}
 
-              {/* Construction Year */}
               {property.constructionYear && (
                 <div className="figma-detail-item">
                   <FaCalendar className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Construction year</span>
-                    <span className="figma-detail-value">{property.constructionYear}</span>
-                  </div>
+                  <span className="figma-detail-label">Construction year</span>
+                  <span className="figma-detail-value">{property.constructionYear}</span>
                 </div>
               )}
 
-              {/* City */}
-              {property.location?.city && (
+              {/* Row 3 */}
+              {property.bathrooms > 0 && (
                 <div className="figma-detail-item">
-                  <FaMapMarkerAlt className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">City</span>
-                    <span className="figma-detail-value">{property.location.city}</span>
-                  </div>
+                  <FaBath className="figma-detail-icon" />
+                  <span className="figma-detail-label">Bathrooms</span>
+                  <span className="figma-detail-value">{property.bathrooms}</span>
                 </div>
               )}
 
-              {/* Province */}
-              {property.location?.province && (
+              {(property.area?.ana) && (
                 <div className="figma-detail-item">
-                  <FaMapMarkerAlt className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Province</span>
-                    <span className="figma-detail-value">{property.location.province}</span>
-                  </div>
+                  <FaRulerCombined className="figma-detail-icon" />
+                  <span className="figma-detail-label">Total area</span>
+                  <span className="figma-detail-value">{property.area.ana} Ana</span>
                 </div>
               )}
 
-              {/* Address - Full Width */}
-              {property.location?.address && (
-                <div className="figma-detail-item figma-detail-full-width">
-                  <FaMapMarkerAlt className="figma-detail-icon" />
-                  <div className="figma-detail-text">
-                    <span className="figma-detail-label">Address</span>
-                    <span className="figma-detail-value">{property.location.address}</span>
-                  </div>
-                </div>
-              )}
+              <div className="figma-detail-item">
+                {/* Empty cell for layout */}
+              </div>
             </div>
           </div>
 
@@ -1046,3 +1035,5 @@ const PropertyDetail = () => {
 };
 
 export default PropertyDetail;
+
+
