@@ -9,6 +9,7 @@ import {
   FaCheckCircle, FaPhone, FaEnvelope, FaUser, FaImage, 
   FaFlag, FaParking, FaBuilding, FaCalendar 
 } from "react-icons/fa";
+import "../styles/PropertyDetail.css";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -167,466 +168,14 @@ const PropertyDetail = () => {
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-        
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        .figma-property-detail {
-          font-family: 'Poppins', sans-serif;
-          background: #FAFBFC;
-          min-height: 100vh;
-          padding: 20px;
-        }
-
-        .figma-container {
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .figma-badge {
-          display: inline-block;
-          padding: 6px 16px;
-          background: #4A90E2;
-          color: white;
-          border-radius: 4px;
-          font-size: 13px;
-          font-weight: 600;
-          margin-bottom: 12px;
-        }
-
-        .figma-title {
-          font-size: 28px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin: 8px 0;
-          line-height: 1.3;
-        }
-
-        .figma-price {
-          font-size: 24px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin: 12px 0 20px 0;
-        }
-
-        .figma-layout {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 30px;
-          margin-top: 30px;
-        }
-
-        .figma-left {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .figma-main-image {
-          width: 100%;
-          height: 500px;
-          object-fit: cover;
-          border-radius: 12px;
-          cursor: pointer;
-          transition: transform 0.3s;
-        }
-
-        .figma-main-image:hover {
-          transform: scale(1.02);
-        }
-
-        .figma-right {
-          display: flex;
-          flex-direction: column;
-          height: 500px;
-        }
-
-        .figma-tabs {
-          display: flex;
-          gap: 40px;
-          border-bottom: 2px solid #e0e0e0;
-          margin-bottom: 0;
-          flex-shrink: 0;
-        }
-
-        .figma-tab {
-          padding: 12px 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: #666;
-          cursor: pointer;
-          border-bottom: 3px solid transparent;
-          margin-bottom: -2px;
-          transition: all 0.3s;
-        }
-
-        .figma-tab.active {
-          color: #1a1a1a;
-          border-bottom-color: #4A90E2;
-        }
-
-        .figma-tab-content {
-          flex: 1;
-          overflow-y: auto;
-          padding-top: 20px;
-          min-height: 0;
-        }
-
-        .figma-photos-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 15px;
-          height: 100%;
-          align-content: start;
-        }
-
-        .figma-photo-item {
-          position: relative;
-          height: 200px;
-          border-radius: 8px;
-          overflow: hidden;
-          cursor: pointer;
-          transition: transform 0.3s;
-        }
-
-        .figma-photo-item:hover {
-          transform: scale(1.05);
-        }
-
-        .figma-photo-item img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .figma-show-all {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: rgba(0,0,0,0.7);
-          color: white;
-          padding: 15px;
-          text-align: center;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-
-        .figma-video-container {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 15px;
-          align-content: start;
-        }
-
-        .figma-video {
-          width: 100%;
-          height: 200px;
-          border-radius: 8px;
-          object-fit: cover;
-        }
-
-        .figma-map-container {
-          height: 100%;
-          border-radius: 8px;
-          overflow: hidden;
-          min-height: 420px;
-        }
-
-        .figma-actions {
-          display: flex;
-          gap: 15px;
-          margin: 15px 0 20px 0;
-          align-items: center;
-        }
-
-        .figma-btn {
-          padding: 10px 20px;
-          border-radius: 6px;
-          font-weight: 600;
-          font-size: 14px;
-          cursor: pointer;
-          transition: all 0.3s;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          border: none;
-        }
-
-        .figma-btn-primary {
-          background: #4A90E2;
-          color: white;
-        }
-
-        .figma-btn-primary:hover {
-          background: #357ABD;
-        }
-
-        .figma-btn-outline {
-          background: white;
-          border: 2px solid #e0e0e0;
-          color: #666;
-        }
-
-        .figma-btn-outline:hover {
-          border-color: #4A90E2;
-          color: #4A90E2;
-        }
-
-        .figma-rating-box {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 15px;
-          background: white;
-          border-radius: 6px;
-          border: 1px solid #e0e0e0;
-        }
-
-        .figma-rating-stars {
-          display: flex;
-          gap: 3px;
-        }
-
-        .figma-rating-count {
-          font-size: 13px;
-          color: #666;
-        }
-
-        .figma-verified {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          color: #4A90E2;
-          font-size: 14px;
-          font-weight: 600;
-        }
-
-        .figma-report {
-          margin-left: auto;
-          color: #666;
-          font-size: 14px;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 5px;
-        }
-
-        .figma-report:hover {
-          color: #ff4444;
-        }
-
-        .figma-details-section {
-          background: white;
-          padding: 30px 40px;
-          border-radius: 0;
-          margin-top: 25px;
-          box-shadow: none;
-          border: none;
-        }
-
-        .figma-section-title {
-          font-size: 18px;
-          font-weight: 700;
-          color: #1a1a1a;
-          margin-bottom: 20px;
-          padding-bottom: 0;
-          border-bottom: none;
-        }
-
-        .figma-details-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 0;
-          border: none;
-        }
-
-        .figma-detail-item {
-          display: grid;
-          grid-template-columns: 40px 1fr auto;
-          align-items: center;
-          gap: 12px;
-          padding: 16px 20px;
-          background: white;
-          border: none;
-          border-bottom: 1px solid #e8eaed;
-          transition: all 0.2s;
-        }
-
-        .figma-detail-item:last-child {
-          border-bottom: 1px solid #e8eaed;
-        }
-
-        .figma-detail-icon {
-          color: #999;
-          font-size: 22px;
-          flex-shrink: 0;
-        }
-
-        .figma-detail-label {
-          font-size: 15px;
-          color: #666;
-          font-weight: 400;
-          text-align: left;
-        }
-
-        .figma-detail-value {
-          font-size: 15px;
-          font-weight: 600;
-          color: #1a1a1a;
-          text-align: right;
-          white-space: nowrap;
-        }
-
-        .figma-nearby-section {
-          background: white;
-          padding: 30px;
-          border-radius: 16px;
-          margin-top: 25px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          border: 1px solid #e8eaed;
-        }
-
-        .figma-nearby-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 30px;
-        }
-
-        .figma-nearby-category h4 {
-          font-size: 15px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 16px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding-bottom: 0;
-          border-bottom: none;
-        }
-
-        .figma-nearby-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-
-        .figma-nearby-list li {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 12px 0;
-          font-size: 14px;
-          color: #333;
-          border-bottom: 1px solid #f0f0f0;
-          transition: all 0.2s;
-        }
-
-        .figma-nearby-list li:hover {
-          color: #4A90E2;
-          padding-left: 8px;
-        }
-
-        .figma-nearby-list li:last-child {
-          border-bottom: none;
-        }
-
-        .figma-nearby-list li span:first-child {
-          font-weight: 400;
-          color: #1a1a1a;
-        }
-
-        .figma-nearby-list li span:last-child {
-          font-size: 13px;
-          color: #6c757d;
-          font-weight: 500;
-        }
-
-        .figma-description-section {
-          background: white;
-          padding: 30px;
-          border-radius: 16px;
-          margin-top: 25px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          border: 1px solid #e8eaed;
-        }
-
-        .figma-description-text {
-          font-size: 15px;
-          line-height: 1.7;
-          color: #495057;
-          white-space: pre-wrap;
-        }
-
-
-
-        @media (max-width: 968px) {
-          .figma-layout {
-            grid-template-columns: 1fr;
-          }
-
-          .figma-details-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .figma-nearby-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        @media (max-width: 576px) {
-          .figma-title {
-            font-size: 24px;
-          }
-
-          .figma-price {
-            font-size: 22px;
-          }
-
-          .figma-details-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .figma-detail-item {
-            border-right: none;
-          }
-
-          .figma-photos-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .figma-video-container {
-            grid-template-columns: 1fr;
-          }
-
-          .figma-details-section,
-          .figma-nearby-section,
-          .figma-description-section {
-            padding: 24px;
-          }
-        }
-
-          .figma-video-container {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
-
-      <div className="figma-property-detail">
-        <div className="figma-container">
+      <div className="property-detail-page">
+        <div className="detail-container">
           {/* Top: Title and Badge */}
           <div style={{ marginBottom: '20px' }}>
-            <span className="figma-badge">
+            <span className="listing-badge">
               For {property.listingType === "sale" ? "sale" : "rent"}
             </span>
-            <h1 className="figma-title">{property.title}</h1>
+            <h1 className="property-title">{property.title}</h1>
             {property.location?.address && (
               <div style={{ fontSize: '15px', color: '#666', marginTop: '8px' }}>
                 {property.location.address}, {property.location.city}
@@ -635,35 +184,35 @@ const PropertyDetail = () => {
           </div>
 
           {/* Image Section - Left: Main Image, Right: Show All + Map */}
-          <div className="figma-layout">
+          <div className="media-layout">
             {/* Left Side - Main Image */}
-            <div className="figma-left">
+            <div className="main-image-section">
               <img
                 src={mainImage}
                 alt={property.title}
-                className="figma-main-image"
+                className="hero-image"
                 onClick={() => openGallery(0)}
               />
             </div>
 
             {/* Right Side - Tabs for Photos/Videos/Location */}
-            <div className="figma-right">
+            <div className="media-tabs-section">
               {/* Tabs */}
-              <div className="figma-tabs">
+              <div className="tab-navigation">
                 <div 
-                  className={`figma-tab ${activeTab === 'photos' ? 'active' : ''}`}
+                  className={`tab-item ${activeTab === 'photos' ? 'active' : ''}`}
                   onClick={() => setActiveTab('photos')}
                 >
                   Photos
                 </div>
                 <div 
-                  className={`figma-tab ${activeTab === 'videos' ? 'active' : ''}`}
+                  className={`tab-item ${activeTab === 'videos' ? 'active' : ''}`}
                   onClick={() => setActiveTab('videos')}
                 >
                   Video
                 </div>
                 <div 
-                  className={`figma-tab ${activeTab === 'location' ? 'active' : ''}`}
+                  className={`tab-item ${activeTab === 'location' ? 'active' : ''}`}
                   onClick={() => setActiveTab('location')}
                 >
                   Location
@@ -671,19 +220,19 @@ const PropertyDetail = () => {
               </div>
 
               {/* Tab Content */}
-              <div className="figma-tab-content">
+              <div className="tab-content-area">
                 {/* Photos Tab */}
                 {activeTab === 'photos' && (
-                  <div className="figma-photos-grid">
+                  <div className="photos-grid">
                     {galleryImages.slice(0, 3).map((img, idx) => (
-                      <div key={idx} className="figma-photo-item" onClick={() => openGallery(idx)}>
+                      <div key={idx} className="photo-card" onClick={() => openGallery(idx)}>
                         <img src={img.url} alt={`Photo ${idx + 1}`} />
                       </div>
                     ))}
                     {galleryImages.length > 3 && (
-                      <div className="figma-photo-item" onClick={() => openGallery(0)}>
+                      <div className="photo-card" onClick={() => openGallery(0)}>
                         <img src={galleryImages[3]?.url || galleryImages[0]?.url} alt="More" />
-                        <div className="figma-show-all">
+                        <div className="view-all-overlay">
                           <FaImage size={20} />
                           Show all {galleryImages.length} photos
                         </div>
@@ -694,10 +243,10 @@ const PropertyDetail = () => {
 
                 {/* Videos Tab */}
                 {activeTab === 'videos' && (
-                  <div className="figma-video-container">
+                  <div className="videos-grid">
                     {property.media?.propertyVideos?.length > 0 ? (
                       property.media.propertyVideos.map((videoUrl, idx) => (
-                        <video key={idx} className="figma-video" controls>
+                        <video key={idx} className="video-player" controls>
                           <source src={videoUrl} type="video/mp4" />
                           Your browser does not support the video tag.
                         </video>
@@ -708,7 +257,7 @@ const PropertyDetail = () => {
                       </div>
                     )}
                     {property.media?.roadVideos?.length > 0 && property.media.roadVideos.map((videoUrl, idx) => (
-                      <video key={`road-${idx}`} className="figma-video" controls>
+                      <video key={`road-${idx}`} className="video-player" controls>
                         <source src={videoUrl} type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>
@@ -718,7 +267,7 @@ const PropertyDetail = () => {
 
                 {/* Location Tab */}
                 {activeTab === 'location' && coordinates && (
-                  <div className="figma-map-container">
+                  <div className="map-wrapper">
                     <MapContainer
                       center={[coordinates.lat, coordinates.lng]}
                       zoom={15}
@@ -741,22 +290,22 @@ const PropertyDetail = () => {
           {/* Price and Actions Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '25px', marginBottom: '25px' }}>
             {/* Left: Price */}
-            <div className="figma-price">Rs {property.price?.toLocaleString()} crore</div>
+            <div className="property-price">Rs {property.price?.toLocaleString()} crore</div>
 
             {/* Right: Actions */}
             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-              <button className="figma-btn figma-btn-primary" onClick={handleContact}>
+              <button className="btn-custom btn-primary-custom" onClick={handleContact}>
                 CONTACT US
               </button>
               <button 
-                className={`figma-btn figma-btn-outline ${isFavorited ? 'favorited' : ''}`} 
+                className={`btn-custom btn-outline-custom ${isFavorited ? 'favorited' : ''}`} 
                 onClick={handleFavorite}
                 style={{ padding: '10px 15px' }}
               >
                 <FaHeart color={isFavorited ? '#ff4444' : '#666'} />
               </button>
-              <div className="figma-rating-box">
-                <div className="figma-rating-stars">
+              <div className="rating-display">
+                <div className="star-icons">
                   {[1, 2, 3, 4, 5].map(i => (
                     <FaStar 
                       key={i} 
@@ -765,29 +314,29 @@ const PropertyDetail = () => {
                     />
                   ))}
                 </div>
-                <span className="figma-rating-count">{property.totalReviews || 0} Reviews</span>
+                <span className="review-count">{property.totalReviews || 0} Reviews</span>
               </div>
               {property.isVerified && (
-                <div className="figma-verified">
+                <div className="verified-badge">
                   <FaCheckCircle /> Verified
                 </div>
               )}
-              <div className="figma-report" onClick={handleReport}>
+              <div className="report-link" onClick={handleReport}>
                 <FaFlag /> Report
               </div>
             </div>
           </div>
 
           {/* Property Details */}
-          <div className="figma-details-section">
-            <h3 className="figma-section-title">Property details</h3>
-            <div className="figma-details-grid">
+          <div className="details-section">
+            <h3 className="section-heading">Property details</h3>
+            <div className="details-grid">
               {/* Row 1 */}
               {(property.area?.sqft || property.area?.ana || property.area?.ropani) && (
-                <div className="figma-detail-item">
-                  <FaRulerCombined className="figma-detail-icon" />
-                  <span className="figma-detail-label">Total area</span>
-                  <span className="figma-detail-value">
+                <div className="detail-row">
+                  <FaRulerCombined className="detail-icon" />
+                  <span className="detail-label">Total area</span>
+                  <span className="detail-value">
                     {property.area?.sqft ? `${property.area.sqft} sq ft` : ''}
                     {property.area?.ana ? (property.area?.sqft ? ` (${property.area.ana} Ana)` : `${property.area.ana} Ana`) : ''}
                     {property.area?.ropani ? ` ${property.area.ropani} Ropani` : ''}
@@ -796,64 +345,64 @@ const PropertyDetail = () => {
               )}
 
               {property.floors > 0 && (
-                <div className="figma-detail-item">
-                  <FaBuilding className="figma-detail-icon" />
-                  <span className="figma-detail-label">Elevator</span>
-                  <span className="figma-detail-value">{property.floors}</span>
+                <div className="detail-row">
+                  <FaBuilding className="detail-icon" />
+                  <span className="detail-label">Elevator</span>
+                  <span className="detail-value">{property.floors}</span>
                 </div>
               )}
 
               {property.floors > 0 && (
-                <div className="figma-detail-item">
-                  <FaBuilding className="figma-detail-icon" />
-                  <span className="figma-detail-label">Floor</span>
-                  <span className="figma-detail-value">{property.floors}rd</span>
+                <div className="detail-row">
+                  <FaBuilding className="detail-icon" />
+                  <span className="detail-label">Floor</span>
+                  <span className="detail-value">{property.floors}rd</span>
                 </div>
               )}
 
               {/* Row 2 */}
               {property.bedrooms > 0 && (
-                <div className="figma-detail-item">
-                  <FaBed className="figma-detail-icon" />
-                  <span className="figma-detail-label">Bedrooms</span>
-                  <span className="figma-detail-value">{property.bedrooms}</span>
+                <div className="detail-row">
+                  <FaBed className="detail-icon" />
+                  <span className="detail-label">Bedrooms</span>
+                  <span className="detail-value">{property.bedrooms}</span>
                 </div>
               )}
 
               {property.parking > 0 && (
-                <div className="figma-detail-item">
-                  <FaParking className="figma-detail-icon" />
-                  <span className="figma-detail-label">Parking</span>
-                  <span className="figma-detail-value">Yes</span>
+                <div className="detail-row">
+                  <FaParking className="detail-icon" />
+                  <span className="detail-label">Parking</span>
+                  <span className="detail-value">Yes</span>
                 </div>
               )}
 
               {property.constructionYear && (
-                <div className="figma-detail-item">
-                  <FaCalendar className="figma-detail-icon" />
-                  <span className="figma-detail-label">Construction year</span>
-                  <span className="figma-detail-value">{property.constructionYear}</span>
+                <div className="detail-row">
+                  <FaCalendar className="detail-icon" />
+                  <span className="detail-label">Construction year</span>
+                  <span className="detail-value">{property.constructionYear}</span>
                 </div>
               )}
 
               {/* Row 3 */}
               {property.bathrooms > 0 && (
-                <div className="figma-detail-item">
-                  <FaBath className="figma-detail-icon" />
-                  <span className="figma-detail-label">Bathrooms</span>
-                  <span className="figma-detail-value">{property.bathrooms}</span>
+                <div className="detail-row">
+                  <FaBath className="detail-icon" />
+                  <span className="detail-label">Bathrooms</span>
+                  <span className="detail-value">{property.bathrooms}</span>
                 </div>
               )}
 
               {(property.area?.ana) && (
-                <div className="figma-detail-item">
-                  <FaRulerCombined className="figma-detail-icon" />
-                  <span className="figma-detail-label">Total area</span>
-                  <span className="figma-detail-value">{property.area.ana} Ana</span>
+                <div className="detail-row">
+                  <FaRulerCombined className="detail-icon" />
+                  <span className="detail-label">Total area</span>
+                  <span className="detail-value">{property.area.ana} Ana</span>
                 </div>
               )}
 
-              <div className="figma-detail-item">
+              <div className="detail-row">
                 {/* Empty cell for layout */}
               </div>
             </div>
@@ -861,13 +410,13 @@ const PropertyDetail = () => {
 
           {/* What's Nearby */}
           {property.nearby && (
-            <div className="figma-nearby-section">
-              <h3 className="figma-section-title">What's nearby</h3>
-              <div className="figma-nearby-grid">
+            <div className="nearby-section">
+              <h3 className="section-heading">What's nearby</h3>
+              <div className="nearby-grid">
                 {property.nearby.education?.length > 0 && (
-                  <div className="figma-nearby-category">
+                  <div className="nearby-category">
                     <h4>📚 Education</h4>
-                    <ul className="figma-nearby-list">
+                    <ul className="nearby-list">
                       {property.nearby.education.slice(0, 3).map((place, idx) => (
                         <li key={idx}>
                           <span>{place.name}</span>
@@ -879,9 +428,9 @@ const PropertyDetail = () => {
                 )}
 
                 {property.nearby.food?.length > 0 && (
-                  <div className="figma-nearby-category">
+                  <div className="nearby-category">
                     <h4>🍽️ Food</h4>
-                    <ul className="figma-nearby-list">
+                    <ul className="nearby-list">
                       {property.nearby.food.slice(0, 3).map((place, idx) => (
                         <li key={idx}>
                           <span>{place.name}</span>
@@ -893,9 +442,9 @@ const PropertyDetail = () => {
                 )}
 
                 {property.nearby.health?.length > 0 && (
-                  <div className="figma-nearby-category">
+                  <div className="nearby-category">
                     <h4>🏥 Health & Medicine</h4>
-                    <ul className="figma-nearby-list">
+                    <ul className="nearby-list">
                       {property.nearby.health.slice(0, 3).map((place, idx) => (
                         <li key={idx}>
                           <span>{place.name}</span>
@@ -906,9 +455,9 @@ const PropertyDetail = () => {
                   </div>
                 )}
 
-                <div className="figma-nearby-category">
+                <div className="nearby-category">
                   <h4>🎭 Culture</h4>
-                  <ul className="figma-nearby-list">
+                  <ul className="nearby-list">
                     <li>
                       <span>Nepal Mandala</span>
                       <span>0.089 mile</span>
@@ -929,9 +478,9 @@ const PropertyDetail = () => {
 
           {/* Description */}
           {property.description && (
-            <div className="figma-description-section">
-              <h3 className="figma-section-title">Description</h3>
-              <p className="figma-description-text">{property.description}</p>
+            <div className="description-section">
+              <h3 className="section-heading">Description</h3>
+              <p className="description-text">{property.description}</p>
             </div>
           )}
 

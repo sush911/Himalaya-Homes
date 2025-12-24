@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { getContactInfo, listProperties, reportProperty, toggleFavorite } from "../api/property";
-import { Modal, Button } from "react-bootstrap";
+import { Modal } from "react-bootstrap";
 import AdvancedSearchBar from "../components/AdvancedSearchBar";
 import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaBuilding, FaStar, FaPhone, FaEnvelope, FaUser, FaCheckCircle } from "react-icons/fa";
+import "../styles/PropertyListPage.css";
 
 const COLORS = {
   primary: "#2B5BBA",
@@ -42,12 +43,12 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
         <img src={mainImage} className="property-image-compact" alt={item.title} onError={(e) => (e.target.src = "https://via.placeholder.com/400x300")} />
         {item.isVerified && (
           <div className="verified-badge-compact">
-            <FaCheckCircle size={16} style={{ marginRight: '4px' }} />
+            <FaCheckCircle size={16} className="verified-icon" />
             Verified
           </div>
         )}
         <button className={`favorite-btn-compact ${isAnimating ? 'animate' : ''}`} onClick={handleFavoriteClick}>
-          <FaHeart size={18} style={{ color: isFavorite ? "#dc3545" : "#FFFFFF" }} />
+          <FaHeart size={18} className={`favorite-icon ${isFavorite ? 'active' : ''}`} />
         </button>
       </div>
       
@@ -56,14 +57,14 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
           {item.averageRating ? (
             <>
               {[1, 2, 3, 4, 5].map((star) => (
-                <FaStar key={star} style={{ color: star <= Math.round(item.averageRating) ? '#FFC107' : '#ddd', fontSize: '12px' }} />
+                <FaStar key={star} className={star <= Math.round(item.averageRating) ? 'star-rating' : 'star-rating empty'} />
               ))}
-              <span style={{ marginLeft: '8px', fontSize: '12px', fontWeight: 'bold' }}>
+              <span className="rating-text">
                 {item.averageRating.toFixed(1)} ({item.totalReviews})
               </span>
             </>
           ) : (
-            <span style={{ fontSize: '12px', color: '#999' }}>No ratings</span>
+            <span className="no-rating-text">No ratings</span>
           )}
         </div>
 
@@ -140,11 +141,11 @@ const ContactModal = ({ show, onHide, contact }) => (
           </div>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <div className="spinner-border" style={{ color: COLORS.primary }} role="status">
+        <div className="loading-container">
+          <div className="spinner-border loading-spinner" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p style={{ marginTop: '16px', color: '#666' }}>Loading contact information...</p>
+          <p className="loading-text">Loading contact information...</p>
         </div>
       )}
     </Modal.Body>
@@ -316,7 +317,7 @@ const PropertyListPage = ({ listingType }) => {
       {loading ? (
         <div className="loading-area-compact">
           <div className="spinner-compact"></div>
-          <p style={{ color: "#666", fontWeight: 600 }}>Loading properties...</p>
+          <p className="loading-properties-text">Loading properties...</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="empty-state-compact">
@@ -332,7 +333,7 @@ const PropertyListPage = ({ listingType }) => {
                 {items.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3).map((n) => (
                   <div className="col-md-4" key={n._id}>
                     <div className="card">
-                      <img src={n.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300"} className="card-img-top" style={{ height: 180, objectFit: "cover" }} />
+                      <img src={n.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300"} className="card-img-top property-card-image" />
                       <div className="card-body">
                         <h6 className="card-title">{n.title}</h6>
                         <p className="mb-1 small text-muted">Rs {n.price?.toLocaleString()}</p>
@@ -360,3 +361,4 @@ const PropertyListPage = ({ listingType }) => {
 };
 
 export default PropertyListPage;
+

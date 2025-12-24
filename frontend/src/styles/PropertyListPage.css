@@ -1,0 +1,65 @@
+.verified-icon {
+  margin-right: 4px;
+}
+
+.favorite-icon {
+  color: #FFFFFF;
+}
+
+.favorite-icon.active {
+  color: #dc3545;
+}
+
+.star-rating {
+  color: #FFC107;
+  font-size: 12px;
+}
+
+.star-rating.empty {
+  color: #ddd;
+}
+
+.rating-text {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.no-rating-text {
+  font-size: 12px;
+  color: #999;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.loading-spinner {
+  color: #4A90E2;
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: #666;
+}
+
+.loading-properties-text {
+  color: #666;
+  font-weight: 600;
+}
+
+.property-card-image {
+  height: 180px;
+  object-fit: cover;
+}
+
+.modal-header-custom {
+  background: #4A90E2;
+  color: white;
+  border: none;
+}
+
+.modal-body-custom {
+  padding: 30px;
+}

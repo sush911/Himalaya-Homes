@@ -100,37 +100,61 @@ export default function Navbar() {
             )}
           </ul>
 
-          <div className="nav-action-bar d-flex align-items-center m-0">
-            <Link
-              to="/my-listings"
-              className="action-link me-3"
-              style={navTextStyle}
-            >
-              {t('myListings')}
-            </Link>
-
-            {!token ? (
-              <>
-                <Link
-                  to="/login"
-                  className="action-btn action-outline me-2"
-                  style={navTextStyle}
-                >
-                  {t('login')}
-                </Link>
-                <Link
-                  to="/signup"
-                  className="action-btn action-primary"
-                  style={navTextStyle}
-                >
-                  {t('signup')}
-                </Link>
-              </>
-            ) : (
-              <button
-                className="action-btn action-primary"
-                onClick={handleLogout}
+          <div className="d-flex align-items-center gap-3">
+            <div className="nav-action-bar d-flex align-items-center m-0">
+              <Link
+                to="/my-listings"
+                className="action-link"
                 style={navTextStyle}
+              >
+                {t('myListings')}
+              </Link>
+
+              {!token && (
+                <>
+                  <Link
+                    to="/login"
+                    className="action-btn action-outline me-2"
+                    style={navTextStyle}
+                  >
+                    {t('login')}
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="action-btn action-primary"
+                    style={navTextStyle}
+                  >
+                    {t('signup')}
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {token && (
+              <button
+                className="action-btn"
+                onClick={handleLogout}
+                style={{
+                  ...navTextStyle,
+                  background: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 20px',
+                  borderRadius: '6px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#c82333';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(220, 53, 69, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#dc3545';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = 'none';
+                }}
               >
                 {t('logout')}
               </button>

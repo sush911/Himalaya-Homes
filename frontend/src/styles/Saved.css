@@ -1,0 +1,11 @@
+.saved-property-image {
+  height: 250px;
+  object-fit: cover;
+}
+
+.property-description-truncate {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

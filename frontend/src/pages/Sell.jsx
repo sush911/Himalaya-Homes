@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { submitPropertyRequest, uploadFiles, fetchNearby } from "../api/property";
 import { useLanguage } from "../context/LanguageContext";
+import "../styles/Sell.css";
 
 const propertyTypes = ["house", "building", "apartment", "land"];
 const listingTypes = [
@@ -61,7 +62,7 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
         {label} {maxCount && `(${selectedCount}/${maxCount} files)`}
       </div>
       <div className="upload-helper">Click or drag file to this area to upload</div>
-      <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
+      <div className="upload-helper-text">
         Max file size: {fileSizeLimitDisplay}
       </div>
       <input
@@ -726,7 +727,7 @@ const Sell = () => {
                   </button>
                 </div>
                 <div className="map-wrapper">
-                  <MapContainer center={[center.lat, center.lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
+                  <MapContainer center={[center.lat, center.lng]} zoom={13} className="map-container">
                     <TileLayer
                       attribution='&copy; <a href="http://osm.org/copyright">OSM</a> contributors'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -778,7 +779,7 @@ const Sell = () => {
           </div>
 
           {/* Upload Media Section - Full Width */}
-          <div className="form-section" style={{ marginTop: '24px' }}>
+          <div className="form-section upload-section-full">
             <h3 className="section-title">Upload Media</h3>
             <div className="upload-grid">
               <FileInput 
@@ -830,7 +831,7 @@ const Sell = () => {
           </div>
 
           {/* Submit Button */}
-          <button className="btn-submit" type="submit" disabled={loading} style={{ marginTop: '24px' }}>
+          <button className="btn-submit submit-button-spacing" type="submit" disabled={loading}>
             {loading ? "Submitting..." : "Upload Property Listing"}
           </button>
         </form>

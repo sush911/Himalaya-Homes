@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getFavorites } from "../api/property";
 import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt } from "react-icons/fa";
 import { useLanguage } from "../context/LanguageContext";
+import "../styles/Saved.css";
 
 const PropertyCard = ({ property }) => {
   const { t } = useLanguage();
@@ -13,9 +14,8 @@ const PropertyCard = ({ property }) => {
       <div className="position-relative">
         <img
           src={mainImage}
-          className="card-img-top"
+          className="card-img-top saved-property-image"
           alt={property.title}
-          style={{ height: "250px", objectFit: "cover" }}
           onError={(e) => (e.target.src = "https://via.placeholder.com/400x300")}
         />
         <span className="badge bg-primary position-absolute top-0 start-0 m-2">
@@ -66,12 +66,7 @@ const PropertyCard = ({ property }) => {
         )}
 
         {property.description && (
-          <p className="card-text small text-muted mb-2" style={{ 
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden"
-          }}>
+          <p className="card-text small text-muted mb-2 property-description-truncate">
             {property.description}
           </p>
         )}
