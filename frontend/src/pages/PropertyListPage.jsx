@@ -370,3 +370,6 @@ const PropertyListPage = ({ listingType }) => {
 
 export default PropertyListPage;
 
+
+
+

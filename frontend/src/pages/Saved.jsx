@@ -1,91 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { getFavorites } from "../api/property";
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt } from "react-icons/fa";
+import { getFavorites, toggleFavorite } from "../api/property";
 import { useLanguage } from "../context/LanguageContext";
+import PropertyCardCompact from "../components/PropertyCardCompact";
 import "../styles/Saved.css";
-
-const PropertyCard = ({ property }) => {
-  const { t } = useLanguage();
-  const firstPhoto = property.media?.propertyPhotos?.[0];
-  const mainImage = (typeof firstPhoto === 'object' ? firstPhoto.original : firstPhoto) || "https://via.placeholder.com/400x300";
-
-  return (
-    <div className="card h-100 shadow-sm">
-      <div className="position-relative">
-        <img
-          src={mainImage}
-          className="card-img-top saved-property-image"
-          alt={property.title}
-          onError={(e) => (e.target.src = "https://via.placeholder.com/400x300")}
-        />
-        <span className="badge bg-primary position-absolute top-0 start-0 m-2">
-          For {property.listingType === "sale" ? "Sale" : "Rent"}
-        </span>
-        <span className="badge bg-dark position-absolute top-0 end-0 m-2">
-          {property.propertyType}
-        </span>
-      </div>
-      <div className="card-body d-flex flex-column">
-        <h5 className="card-title">{property.title}</h5>
-        <p className="text-muted mb-2">
-          <FaMapMarkerAlt /> {property.location?.address}, {property.location?.city}
-        </p>
-        <p className="fw-bold mb-2 text-primary">Rs {property.price?.toLocaleString()}</p>
-        
-        <div className="mb-2">
-          <small className="text-muted">
-            {property.bedrooms > 0 && (
-              <span className="me-2">
-                <FaBed /> {property.bedrooms} Beds
-              </span>
-            )}
-            {property.bathrooms > 0 && (
-              <span className="me-2">
-                <FaBath /> {property.bathrooms} Baths
-              </span>
-            )}
-            {property.floors > 0 && (
-              <span className="me-2">{property.floors} Floors</span>
-            )}
-          </small>
-        </div>
-
-        {property.area && (
-          <div className="mb-2">
-            <small className="text-muted">
-              <FaRulerCombined />{" "}
-              {property.area.sqft && `${property.area.sqft} sqft`}
-              {property.area.ana && `, ${property.area.ana} Ana`}
-              {property.area.ropani && `, ${property.area.ropani} Ropani`}
-            </small>
-          </div>
-        )}
-
-        {property.constructionYear && (
-          <small className="text-muted d-block mb-2">Built: {property.constructionYear}</small>
-        )}
-
-        {property.description && (
-          <p className="card-text small text-muted mb-2 property-description-truncate">
-            {property.description}
-          </p>
-        )}
-
-        <div className="mt-auto">
-          <Link to={`/property/${property._id}`} className="btn btn-primary btn-sm w-100">
-            View Details
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const Saved = () => {
   const token = localStorage.getItem("token");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!token) return;
@@ -102,38 +25,49 @@ const Saved = () => {
     load();
   }, [token]);
 
+  const handleFavorite = async (propertyId) => {
+    try {
+      await toggleFavorite(propertyId, token);
+      // Remove from list after unfavoriting
+      setItems(items.filter(item => item._id !== propertyId));
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+    }
+  };
+
   if (!token) {
     return (
-      <div className="container py-4">
-        <div className="alert alert-warning">Please login to view saved properties.</div>
+      <div className="container py-5">
+        <div className="alert alert-warning" style={{ borderRadius: '12px' }}>
+          Please login to view saved properties.
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="container py-4 text-center">
-        <div className="spinner-border" role="status">
-          <span className="visually-hidden">Loading...</span>
-        </div>
+      <div className="container py-5 text-center">
+        <div style={{ width: '48px', height: '48px', border: '4px solid #f3f3f3', borderTop: '4px solid #2B5BBA', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
+        <p style={{ marginTop: '16px', color: '#666', fontWeight: '600' }}>Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="container py-4">
-      <h2 className="mb-4">Saved Properties</h2>
+    <div className="container py-5">
+      <h2 className="mb-4" style={{ fontSize: '28px', fontWeight: '700', color: '#1E3A5F' }}>Saved Properties</h2>
       {items.length === 0 ? (
-        <div className="alert alert-info">
-          <p>No saved properties yet. Click the heart icon on any property to save it here.</p>
+        <div className="alert alert-info" style={{ borderRadius: '12px', border: '1px solid #bee5eb' }}>
+          <p className="mb-0">No saved properties yet. Click the heart icon on any property to save it here.</p>
         </div>
       ) : (
         <>
-          <p className="text-muted mb-3">You have {items.length} saved property(ies)</p>
+          <p className="text-muted mb-4" style={{ fontSize: '15px' }}>You have {items.length} saved property(ies)</p>
           <div className="row g-4">
             {items.map((p) => (
-              <div className="col-md-4 col-lg-4" key={p._id}>
-                <PropertyCard property={p} />
+              <div className="col-lg-3 col-md-4 col-sm-6" key={p._id}>
+                <PropertyCardCompact item={p} onFavorite={handleFavorite} showActions={false} />
               </div>
             ))}
           </div>

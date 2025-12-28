@@ -3,9 +3,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "../styles/Homepage.css";
 import heroImg from "../assets/Home.png";
 import AdvancedSearchBar from "../components/AdvancedSearchBar";
-import PropertyCard from "../components/PropertyCard";
+import PropertyCardCompact from "../components/PropertyCardCompact";
 import { useNavigate } from "react-router-dom";
-import { listProperties } from "../api/property";
+import { listProperties, toggleFavorite } from "../api/property";
 import { useLanguage } from "../context/LanguageContext";
 
 const Homepage = () => {
@@ -13,6 +13,7 @@ const Homepage = () => {
   const { t } = useLanguage();
   const [newArrivals, setNewArrivals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const loadNew = async () => {
@@ -21,7 +22,7 @@ const Homepage = () => {
         const res = await listProperties({ listingType: "sale" });
         const props = Array.isArray(res.data) ? res.data : res.data?.properties || [];
         const sorted = props.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        const top = sorted.slice(0, 3).map(normalizeProperty);
+        const top = sorted.slice(0, 3);
         setNewArrivals(top);
       } catch (err) {
         setNewArrivals([]);
@@ -32,20 +33,17 @@ const Homepage = () => {
     loadNew();
   }, []);
 
-  const normalizeProperty = (p) => ({
-    _id: p._id || p.id,
-    title: p.title || p.name || "Untitled Property",
-    price: p.price || p.rent || 0,
-    listingType: p.listingType || (p.rent ? "rent" : "sale"),
-    propertyType: p.propertyType || p.type || "Property",
-    images: (p.images && p.images.length) ? p.images : (p.media?.propertyPhotos || []).map((url) => ({ 
-      url: typeof url === 'object' ? url.original : url 
-    })),
-    location: p.location || p.address || { city: p.city || "", country: p.country || "" },
-    bedrooms: p.bedrooms ?? p.bed ?? "-",
-    bathrooms: p.bathrooms ?? p.bath ?? "-",
-    area: p.area || { value: p.size || "-", unit: p.unit || "sqft" },
-  });
+  const handleFavorite = async (propertyId) => {
+    if (!token) {
+      alert("Please login to save favorites");
+      return;
+    }
+    try {
+      await toggleFavorite(propertyId, token);
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+    }
+  };
 
   const handleSearch = (filters) => {
     const params = new URLSearchParams();
@@ -74,18 +72,29 @@ const Homepage = () => {
       </section>
 
       <section className="container py-5">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h3 className="mb-0">{t('newArrivals')}</h3>
-          <a href="/buy" className="text-decoration-none">{t('viewAll')}</a>
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h3 className="mb-0" style={{ fontSize: '24px', fontWeight: '700', color: '#1E3A5F' }}>{t('newArrivals')}</h3>
+          <a href="/buy" className="text-decoration-none" style={{ color: '#2B5BBA', fontWeight: '600', fontSize: '15px' }}>{t('viewAll')}</a>
         </div>
 
-        <div className="row g-3">
+        <div className="row g-4">
           {loading ? (
-            <div className="col-12"><div className="text-center py-4">{t('loading')}</div></div>
+            <div className="col-12">
+              <div className="text-center py-5">
+                <div style={{ width: '48px', height: '48px', border: '4px solid #f3f3f3', borderTop: '4px solid #2B5BBA', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto' }}></div>
+                <p style={{ marginTop: '16px', color: '#666', fontWeight: '600' }}>{t('loading')}</p>
+              </div>
+            </div>
           ) : newArrivals.length === 0 ? (
-            <div className="col-12"><div className="alert alert-info">{t('noNewProperties')}</div></div>
+            <div className="col-12">
+              <div className="alert alert-info" style={{ borderRadius: '12px', border: '1px solid #bee5eb' }}>{t('noNewProperties')}</div>
+            </div>
           ) : (
-            newArrivals.map((p) => <PropertyCard key={p._id} property={p} />)
+            newArrivals.map((p) => (
+              <div key={p._id} className="col-lg-4 col-md-6">
+                <PropertyCardCompact item={p} onFavorite={handleFavorite} showActions={false} />
+              </div>
+            ))
           )}
         </div>
       </section>

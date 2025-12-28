@@ -1,73 +1,156 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaStar, FaCheckCircle } from 'react-icons/fa';
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaStar, FaCheckCircle, FaHeart, FaBuilding } from 'react-icons/fa';
 
-const PropertyCard = ({ property }) => {
-  const renderStars = (rating) => {
-    if (!rating) return null;
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <FaStar
-          key={i}
-          size={12}
-          color={i <= Math.round(rating) ? '#ffc107' : '#ddd'}
-        />
-      );
-    }
-    return stars;
+const PropertyCard = ({ property, onFavorite }) => {
+  const firstPhoto = property.media?.propertyPhotos?.[0];
+  const mainImage = (typeof firstPhoto === 'object' ? firstPhoto.original : firstPhoto) || "/placeholder-property.jpg";
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleFavoriteClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsAnimating(true);
+    setIsFavorite(!isFavorite);
+    setTimeout(() => setIsAnimating(false), 600);
+    if (onFavorite) onFavorite(property._id);
   };
 
   return (
-    <div className="col-md-4 col-sm-6 mb-4">
-      <Link to={`/property/${property._id}`} className="text-decoration-none">
-        <div className="property-card">
-          <div className="position-relative">
-            <img
-              src={property.images?.[0]?.url || 'https://via.placeholder.com/400x300'}
-              alt={property.title}
-              onError={(e) => e.target.src = 'https://via.placeholder.com/400x300'}
-            />
-            <span className="badge bg-primary position-absolute top-0 start-0 m-2">
-              For {property.listingType === 'sale' ? 'Sale' : 'Rent'}
-            </span>
-            <span className="badge bg-dark position-absolute top-0 end-0 m-2">
-              {property.propertyType}
-            </span>
-            {property.isVerified && (
-              <span className="badge bg-success position-absolute bottom-0 start-0 m-2">
-                <FaCheckCircle className="me-1" /> Verified
-              </span>
+    <Link to={`/property/${property._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div style={{
+        background: '#fff',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.12)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)';
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
+      }}>
+        <div style={{ position: 'relative', width: '100%', paddingTop: '66.67%', overflow: 'hidden' }}>
+          <img 
+            src={mainImage} 
+            alt={property.title} 
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
+            }}
+            onError={(e) => e.target.src = '/placeholder-property.jpg'}
+          />
+          {property.isVerified && (
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              background: 'rgba(40, 167, 69, 0.95)',
+              color: 'white',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              backdropFilter: 'blur(4px)'
+            }}>
+              <FaCheckCircle size={14} />
+              Verified
+            </div>
+          )}
+          <button 
+            style={{
+              position: 'absolute',
+              top: '12px',
+              right: '12px',
+              background: 'rgba(60, 60, 60, 0.75)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '36px',
+              height: '36px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              backdropFilter: 'blur(4px)'
+            }}
+            onClick={handleFavoriteClick}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(80, 80, 80, 0.85)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(60, 60, 60, 0.75)'}
+          >
+            <FaHeart size={16} color={isFavorite ? '#dc3545' : '#FFFFFF'} />
+          </button>
+        </div>
+        
+        <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+            {property.averageRating ? (
+              <>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <FaStar key={star} size={12} color={star <= Math.round(property.averageRating) ? '#FFC107' : '#ddd'} />
+                ))}
+                <span style={{ marginLeft: '4px', fontSize: '12px', fontWeight: '600', color: '#666' }}>
+                  {property.averageRating.toFixed(1)} ({property.totalReviews})
+                </span>
+              </>
+            ) : (
+              <span style={{ fontSize: '12px', color: '#999' }}>No ratings</span>
             )}
           </div>
-          <div className="p-3">
-            <h5 className="property-price mb-2">
-              NPR {property.price.toLocaleString()}
-              {property.listingType === 'rent' && '/month'}
-            </h5>
-            <h6 className="mb-2 text-dark">{property.title}</h6>
-            <p className="property-location mb-3">
-              <FaMapMarkerAlt /> {property.location.city}, {property.location.country}
-            </p>
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <div className="d-flex gap-1">
-                {renderStars(property.averageRating)}
+
+          <div style={{ fontSize: '20px', fontWeight: '700', color: '#2B5BBA', marginBottom: '8px' }}>
+            Rs {property.price?.toLocaleString()}
+          </div>
+
+          <h5 style={{ fontSize: '16px', fontWeight: '600', color: '#333', marginBottom: '8px', lineHeight: '1.4' }}>
+            {property.title}
+          </h5>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#666', marginBottom: '12px' }}>
+            <FaMapMarkerAlt size={12} />
+            <span>{property.location?.address}, {property.location?.city}</span>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '12px', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #f0f0f0' }}>
+            {property.bedrooms > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
+                <FaBed size={14} /> {property.bedrooms}
               </div>
-              {property.averageRating > 0 && (
-                <small className="text-muted">
-                  {property.averageRating.toFixed(1)} ({property.totalReviews})
-                </small>
-              )}
-            </div>
-            <div className="property-features">
-              <span><FaBed /> {property.bedrooms}</span>
-              <span><FaBath /> {property.bathrooms}</span>
-              <span><FaRulerCombined /> {property.area.value} {property.area.unit}</span>
-            </div>
+            )}
+            {property.bathrooms > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
+                <FaBath size={14} /> {property.bathrooms}
+              </div>
+            )}
+            {property.floors > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
+                <FaBuilding size={14} /> {property.floors}
+              </div>
+            )}
+            {property.area && property.area.sqft && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
+                <FaRulerCombined size={14} /> {property.area.sqft}
+              </div>
+            )}
           </div>
         </div>
-      </Link>
-    </div>
+      </div>
+    </Link>
   );
 };
 

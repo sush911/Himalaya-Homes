@@ -44,11 +44,21 @@ export default function Profile() {
         fd.append("email", edit.email);
         fd.append("phone", edit.phone);
         const res = await updateProfile(fd, token);
-        if (res?.data?.profilePic) setUser({ ...user, profilePic: res.data.profilePic });
+        if (res?.data?.profilePic) {
+          setUser({ ...user, profilePic: res.data.profilePic });
+          // Force navbar to refresh by triggering a storage event
+          window.dispatchEvent(new Event('profileUpdated'));
+        }
       } else {
         await updateProfile(edit, token);
       }
       alert("Profile updated");
+      // Reload user data to get fresh profile pic
+      const freshUser = await getMe(token);
+      setUser(freshUser.data);
+      setEdit({ email: freshUser.data.email || "", phone: freshUser.data.phone || "" });
+      setFile(null);
+      setPreview("");
     } catch (err) {
       alert(err?.response?.data?.message || "Update failed");
     } finally { setLoading(false); }

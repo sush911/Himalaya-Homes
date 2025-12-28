@@ -1,7 +1,8 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/navbar";
+import Navbar from "./components/Navbar";
 import { LanguageProvider } from "./context/LanguageContext";
+import { NotificationProvider } from "./context/NotificationContext";
 // 
 import Homepage from "./pages/HomePageNew";
 import Login from "./pages/Login";
@@ -30,10 +31,11 @@ import AdminRoute from "./AdminRoute";
 export default function App() {
   return (
     <LanguageProvider>
-      <BrowserRouter>
-        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-          <Navbar />
-        <main style={{ flex: 1 }}>
+      <NotificationProvider>
+        <BrowserRouter>
+          <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+            <Navbar />
+          <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Homepage />} />
             <Route path="/login" element={<Login />} />
@@ -60,6 +62,7 @@ export default function App() {
         <Footer />
       </div>
     </BrowserRouter>
+      </NotificationProvider>
     </LanguageProvider>
   );
 }

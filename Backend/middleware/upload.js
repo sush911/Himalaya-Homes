@@ -7,14 +7,12 @@ if (!fs.existsSync("uploads")) {
   fs.mkdirSync("uploads", { recursive: true });
 }
 
-// storage destination
-const storage = multer.diskStorage({
+// Storage for property uploads (photos/videos)
+const propertyStorage = multer.diskStorage({
   destination(req, file, cb) {
-    // Default to 'properties' if folder not specified
     const folder = "properties";
     const uploadPath = `uploads/${folder}`;
     
-    // Ensure folder exists
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -23,6 +21,23 @@ const storage = multer.diskStorage({
   },
   filename(req, file, cb) {
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+
+// Storage for profile pictures (directly in uploads/)
+const profileStorage = multer.diskStorage({
+  destination(req, file, cb) {
+    const uploadPath = "uploads";
+    
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    
+    cb(null, uploadPath);
+  },
+  filename(req, file, cb) {
+    const uniqueName = `profile-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname)}`;
     cb(null, uniqueName);
   },
 });
@@ -40,11 +55,33 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
+// Image-only filter for profile pictures
+const imageOnlyFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedImageExts = [".jpg", ".jpeg", ".png", ".webp", ".gif"];
+  
+  if (allowedImageExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only images (JPG, JPEG, PNG, WebP, GIF) are allowed for profile pictures"), false);
+  }
+};
+
+// Default upload for properties
 const upload = multer({ 
-  storage, 
+  storage: propertyStorage, 
   fileFilter,
   limits: {
     fileSize: 500 * 1024 * 1024, // 500MB max file size
+  }
+});
+
+// Upload for profile pictures
+export const uploadProfile = multer({ 
+  storage: profileStorage, 
+  fileFilter: imageOnlyFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max for profile pictures
   }
 });
 

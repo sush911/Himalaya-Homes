@@ -26,19 +26,19 @@ a { text-decoration: none; }
 .navbar-custom {
   background: var(--white) !important;
   border-bottom: 1px solid var(--border);
-  padding: 0.6rem 1.5rem !important;
+  padding: 0.4rem 1.5rem !important;
   box-shadow: 0 2px 8px rgba(30,58,95,0.04);
   display: flex !important;
   align-items: center !important;
 }
 .navbar { display: flex !important; align-items: center !important; }
 .navbar .navbar-brand { padding-top: 0 !important; padding-bottom: 0 !important; margin-right: 1.5rem !important; flex-shrink: 0; }
-.navbar .navbar-brand img { max-height: 100px !important; width: auto !important; }
-.navbar-logo { height: 100px !important; width: auto !important; margin-right: 12px; object-fit: contain; display: block; }
+.navbar .navbar-brand img { max-height: 70px !important; width: auto !important; }
+.navbar-logo { height: 70px !important; width: auto !important; margin-right: 12px; object-fit: contain; display: block; }
 .brand-title { color: var(--dark-blue); font-weight: 900; font-size: 1.25rem; letter-spacing: 0.5px; white-space: nowrap; }
 .navbar-collapse { display: flex !important; align-items: center !important; }
 .navbar-nav { display: flex !important; align-items: center !important; flex-wrap: nowrap !important; }
-.nav-link { color: var(--text) !important; font-weight: 600; padding: 0.5rem 0.7rem !important; font-size: 1rem; white-space: nowrap; }
+.nav-link { color: var(--text) !important; font-weight: 600; padding: 0.5rem 0.7rem !important; font-size: 1rem; white-space: nowrap; opacity: 1; }
 .nav-link:hover { color: var(--primary-blue) !important; }
 
 /* Navbar image helpers */
@@ -54,7 +54,7 @@ a { text-decoration: none; }
 .nav-action-bar .action-outline:hover { background: rgba(255,255,255,0.06); }
 
 /* tighten spacing for navbar */
-.navbar-nav .nav-item { margin-right: 4px; }
+.navbar-nav .nav-item { margin: 0; }
 
 /* Profile icon positioned at far right */
 .navbar-profile { margin-left: auto; padding-right: 1rem; padding-left: 1.5rem; display: flex !important; align-items: center !important; flex-shrink: 0; }

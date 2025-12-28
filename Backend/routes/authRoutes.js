@@ -2,7 +2,7 @@ import express from "express";
 import { registerUser, loginUser, getMe } from "../controllers/authController.js";
 import { protect } from "../middleware/authMiddleware.js";
 import { updateProfile } from "../controllers/userController.js";
-import upload from "../middleware/upload.js";
+import { uploadProfile } from "../middleware/upload.js";
 
 import crypto from "crypto";
 import bcrypt from "bcrypt";
@@ -12,7 +12,7 @@ import { sendResetCode } from "../api/emailService.js";
 const router = express.Router();
 
 // PUBLIC ROUTES
-router.post("/register", upload.single("profilePic"), registerUser);
+router.post("/register", uploadProfile.single("profilePic"), registerUser);
 router.post("/login", loginUser);
 
 // FORGOT-PASSWORD
@@ -64,6 +64,6 @@ router.post("/reset-password", async (req, res) => {
 
 // PROTECTED ROUTES
 router.get("/me", protect, getMe);
-router.put("/update", protect, upload.single("profilePic"), updateProfile);
+router.put("/update", protect, uploadProfile.single("profilePic"), updateProfile);
 
 export default router;
