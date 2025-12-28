@@ -1,5 +1,5 @@
-// HomePageNew.jsx was an alternate/duplicate homepage. It has been stubbed out to avoid
-// duplicate-component diagnostics. Delete this file if you no longer need it.
+// HomePageNew.jsx was an alternate/duplicate homepage.
+// 
 
 import Homepage from "./HomePage";
 

@@ -5,7 +5,7 @@ import cloudinary from "../config/cloudinary.js";
 import { Readable } from "stream";
 import axios from "axios";
 
-// #region agent log helper
+
 const debugLog = (payload) => {
   fetch("http://127.0.0.1:7242/ingest/4f3578ae-088b-480c-b3c4-4caa0f2750ac", {
     method: "POST",
@@ -18,12 +18,12 @@ const debugLog = (payload) => {
     }),
   }).catch(() => {});
 };
-// #endregion
+
 
 // Upload files to Cloudinary
 export const uploadToCloudinary = async (req, res) => {
   try {
-    // #region agent log
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:uploadToCloudinary",
@@ -35,17 +35,17 @@ export const uploadToCloudinary = async (req, res) => {
         filesIsArray: Array.isArray(req.files),
       },
     });
-    // #endregion
+    
 
     if (!req.files || req.files.length === 0) {
-      // #region agent log
+      
       debugLog({
         hypothesisId: "E",
         location: "propertyController.js:uploadToCloudinary",
         message: "no files in request",
         data: { hasFiles: !!req.files, filesLength: req.files?.length },
       });
-      // #endregion
+      
       return res.status(400).json({ message: "No files uploaded" });
     }
 
@@ -55,7 +55,7 @@ export const uploadToCloudinary = async (req, res) => {
     const hasApiSecret = !!process.env.CLOUDINARY_API_SECRET;
     
     if (!hasCloudName || !hasApiKey || !hasApiSecret) {
-      // #region agent log
+      
       debugLog({
         hypothesisId: "E",
         location: "propertyController.js:uploadToCloudinary",
@@ -66,12 +66,12 @@ export const uploadToCloudinary = async (req, res) => {
           hasApiSecret,
         },
       });
-      // #endregion
+      
       return res.status(500).json({ message: "Cloudinary configuration is missing. Please check environment variables." });
     }
 
     // Verify Cloudinary config is loaded
-    // #region agent log
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:uploadToCloudinary",
@@ -90,14 +90,14 @@ export const uploadToCloudinary = async (req, res) => {
     // Verify Cloudinary is actually configured
     const cloudinaryConfig = cloudinary.config();
     if (!cloudinaryConfig.cloud_name || !cloudinaryConfig.api_key) {
-      // #region agent log
+      
       debugLog({
         hypothesisId: "E",
         location: "propertyController.js:uploadToCloudinary",
         message: "cloudinary not configured",
         data: { cloudinaryConfig },
       });
-      // #endregion
+      
       return res.status(500).json({ message: "Cloudinary is not properly configured. Please check your .env file and restart the server." });
     }
 
@@ -105,7 +105,7 @@ export const uploadToCloudinary = async (req, res) => {
     const uploadPromises = req.files.map((file, index) => {
       return new Promise((resolve, reject) => {
         try {
-          // #region agent log
+          
           debugLog({
             hypothesisId: "E",
             location: "propertyController.js:uploadToCloudinary",
@@ -119,7 +119,7 @@ export const uploadToCloudinary = async (req, res) => {
               bufferType: file.buffer?.constructor?.name,
             },
           });
-          // #endregion
+          
 
           if (!file.buffer) {
             reject(new Error(`File ${file.originalname} has no buffer data`));
@@ -139,16 +139,16 @@ export const uploadToCloudinary = async (req, res) => {
             chunk_size: isVideo ? 6000000 : undefined, // 6MB chunks for videos
           };
 
-          // #region agent log
+          
           debugLog({
             hypothesisId: "E",
             location: "propertyController.js:uploadToCloudinary",
             message: "creating upload stream",
             data: { fileName: file.originalname, isVideo, uploadOptions },
           });
-          // #endregion
+          
 
-          // #region agent log
+          
           debugLog({
             hypothesisId: "E",
             location: "propertyController.js:uploadToCloudinary",
@@ -168,7 +168,7 @@ export const uploadToCloudinary = async (req, res) => {
             uploadOptions,
             (error, result) => {
               if (error) {
-                // #region agent log
+                
                 debugLog({
                   hypothesisId: "E",
                   location: "propertyController.js:uploadToCloudinary",
@@ -192,7 +192,7 @@ export const uploadToCloudinary = async (req, res) => {
               } else if (!result) {
                 reject(new Error(`Upload failed for ${file.originalname}: No result from Cloudinary`));
               } else {
-                // #region agent log
+                
                 debugLog({
                   hypothesisId: "E",
                   location: "propertyController.js:uploadToCloudinary",
@@ -209,32 +209,32 @@ export const uploadToCloudinary = async (req, res) => {
           const bufferStream = Readable.from(file.buffer);
           bufferStream.pipe(uploadStream);
           
-          // Handle stream errors
+          
           bufferStream.on("error", (streamErr) => {
-            // #region agent log
+            
             debugLog({
               hypothesisId: "E",
               location: "propertyController.js:uploadToCloudinary",
               message: "buffer stream error",
               data: { error: streamErr.message, fileName: file.originalname, errorCode: streamErr.code },
             });
-            // #endregion
+            
             reject(new Error(`Stream error for ${file.originalname}: ${streamErr.message}`));
           });
           
           uploadStream.on("error", (uploadErr) => {
-            // #region agent log
+            
             debugLog({
               hypothesisId: "E",
               location: "propertyController.js:uploadToCloudinary",
               message: "cloudinary stream error",
               data: { error: uploadErr.message, fileName: file.originalname, errorCode: uploadErr.code },
             });
-            // #endregion
+            
             reject(new Error(`Cloudinary stream error for ${file.originalname}: ${uploadErr.message}`));
           });
         } catch (setupError) {
-          // #region agent log
+          
           debugLog({
             hypothesisId: "E",
             location: "propertyController.js:uploadToCloudinary",
@@ -245,21 +245,21 @@ export const uploadToCloudinary = async (req, res) => {
               stack: setupError.stack?.substring(0, 300),
             },
           });
-          // #endregion
+          
           reject(new Error(`Setup error for ${file.originalname}: ${setupError.message}`));
         }
       });
     });
 
     const urls = await Promise.all(uploadPromises);
-    // #region agent log
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:uploadToCloudinary",
       message: "upload completed",
       data: { urlCount: urls.length, urls: urls.slice(0, 3) }, // Log first 3 URLs
     });
-    // #endregion
+    
     res.json({ urls });
   } catch (err) {
     // Capture all possible error information
@@ -277,14 +277,14 @@ export const uploadToCloudinary = async (req, res) => {
       errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)).substring(0, 500),
     };
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:uploadToCloudinary",
       message: "upload failed",
       data: errorInfo,
     });
-    // #endregion
+    
     
     console.error("Upload error details:", errorInfo);
     console.error("Full error object:", err);
@@ -300,6 +300,7 @@ export const uploadToCloudinary = async (req, res) => {
 export const fetchNearbyOverpass = async (req, res) => {
   const { lat, lng } = req.body;
   if (!lat || !lng) return res.status(400).json({ message: "lat/lng required" });
+  
   const tagGroups = {
     education: ["school", "college", "university"],
     food: ["restaurant", "cafe", "fast_food"],
@@ -315,16 +316,29 @@ export const fetchNearbyOverpass = async (req, res) => {
         );
         out body;
       `;
-      const response = await axios.post("https://overpass-api.de/api/interpreter", query, {
-        headers: { "Content-Type": "text/plain" },
-      });
-      return response.data.elements
-        .map((el) => ({
-          name: el.tags?.name || el.tags?.amenity || "Unknown",
-          type: el.tags?.amenity,
-          distanceKm: el.tags?.distance || 0,
-        }))
-        .slice(0, 3);
+      
+      try {
+        const response = await axios.post("https://overpass-api.de/api/interpreter", query, {
+          headers: { "Content-Type": "text/plain" },
+          timeout: 30000, // 30 second timeout
+        });
+        
+        if (!response.data || !response.data.elements) {
+          console.warn("Overpass API returned no elements");
+          return [];
+        }
+        
+        return response.data.elements
+          .map((el) => ({
+            name: el.tags?.name || el.tags?.amenity || "Unknown",
+            type: el.tags?.amenity,
+            distanceKm: el.tags?.distance || 0,
+          }))
+          .slice(0, 3);
+      } catch (apiError) {
+        console.error(`Overpass API error for tags ${tags}:`, apiError.message);
+        return []; // Return empty array on error instead of failing
+      }
     };
 
     const [education, food, health] = await Promise.all([
@@ -335,13 +349,15 @@ export const fetchNearbyOverpass = async (req, res) => {
 
     res.json({ education, food, health });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Nearby fetch error:", err.message);
+    // Return empty results instead of error to allow form submission
+    res.json({ education: [], food: [], health: [] });
   }
 };
 
 export const createPropertyRequest = async (req, res) => {
   try {
-    // #region agent log
+    
     debugLog({
       hypothesisId: "A",
       location: "propertyController.js:createPropertyRequest",
@@ -353,7 +369,7 @@ export const createPropertyRequest = async (req, res) => {
         propertyType: req.body.propertyType,
       },
     });
-    // #endregion
+   
 
     // Media should already be Cloudinary URLs from frontend upload
     const media = req.body.media || {};
@@ -401,7 +417,7 @@ export const createPropertyRequest = async (req, res) => {
       postedBy: req.user._id,
     };
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "A",
       location: "propertyController.js:createPropertyRequest",
@@ -418,22 +434,22 @@ export const createPropertyRequest = async (req, res) => {
         },
       },
     });
-    // #endregion
+    
 
     const request = await PropertyRequest.create(payload);
     
-    // #region agent log
+    
     debugLog({
       hypothesisId: "A",
       location: "propertyController.js:createPropertyRequest",
       message: "property request created successfully",
       data: { requestId: request._id.toString() },
     });
-    // #endregion
+    
 
     res.status(201).json(request);
   } catch (err) {
-    // #region agent log
+    
     debugLog({
       hypothesisId: "D",
       location: "propertyController.js:createPropertyRequest",
@@ -445,7 +461,7 @@ export const createPropertyRequest = async (req, res) => {
         stack: err.stack?.substring(0, 300),
       },
     });
-    // #endregion
+    
     
     // Handle validation errors
     if (err.name === "ValidationError") {
@@ -470,20 +486,20 @@ export const getMyPropertyRequests = async (req, res) => {
 
 export const approvePropertyRequest = async (req, res) => {
   try {
-    // #region agent log
+    
     debugLog({
       hypothesisId: "A",
       location: "propertyController.js:approvePropertyRequest",
       message: "function entry",
       data: { requestId: req.params.id },
     });
-    // #endregion
+    
 
     const request = await PropertyRequest.findById(req.params.id);
     if (!request) return res.status(404).json({ message: "Request not found" });
     if (request.status !== "pending") return res.status(400).json({ message: "Already processed" });
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "A",
       location: "propertyController.js:approvePropertyRequest",
@@ -494,7 +510,7 @@ export const approvePropertyRequest = async (req, res) => {
         coordinates: request.location?.coordinates,
       },
     });
-    // #endregion
+    
 
     // Note: Geospatial indexes are now dropped at server startup (db.js)
     // This check is kept for logging/debugging purposes
@@ -504,7 +520,7 @@ export const approvePropertyRequest = async (req, res) => {
         name.includes("2dsphere") || (name.includes("geo") && name.includes("2dsphere"))
       );
       
-      // #region agent log
+      
       debugLog({
         hypothesisId: "A",
         location: "propertyController.js:approvePropertyRequest",
@@ -516,28 +532,28 @@ export const approvePropertyRequest = async (req, res) => {
           geoSpatialIndexes,
         },
       });
-      // #endregion
+      
       
       if (geoSpatialIndexes.length > 0) {
-        // #region agent log
+        
         debugLog({
           hypothesisId: "A",
           location: "propertyController.js:approvePropertyRequest",
           message: "WARNING: geospatial indexes still exist",
           data: { geoSpatialIndexes },
         });
-        // #endregion
+        
         console.warn(`⚠️  WARNING: Geospatial indexes still exist: ${geoSpatialIndexes.join(", ")}. They should have been dropped at startup.`);
       }
     } catch (indexErr) {
-      // #region agent log
+      
       debugLog({
         hypothesisId: "A",
         location: "propertyController.js:approvePropertyRequest",
         message: "index check failed",
         data: { error: indexErr.message },
       });
-      // #endregion
+      
     }
 
     // Ensure coordinates are valid numbers (fix geospatial error)
@@ -553,7 +569,7 @@ export const approvePropertyRequest = async (req, res) => {
       }
     }
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "C",
       location: "propertyController.js:approvePropertyRequest",
@@ -566,7 +582,7 @@ export const approvePropertyRequest = async (req, res) => {
         lngType: typeof location.coordinates?.lng,
       },
     });
-    // #endregion
+    
 
     const propertyData = {
       title: request.title,
@@ -589,7 +605,7 @@ export const approvePropertyRequest = async (req, res) => {
       status: "available",
     };
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "C",
       location: "propertyController.js:approvePropertyRequest",
@@ -601,9 +617,9 @@ export const approvePropertyRequest = async (req, res) => {
         postedByType: typeof propertyData.postedBy,
       },
     });
-    // #endregion
+    
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:approvePropertyRequest",
@@ -613,7 +629,7 @@ export const approvePropertyRequest = async (req, res) => {
         locationKeys: propertyData.location ? Object.keys(propertyData.location) : [],
       },
     });
-    // #endregion
+   
 
     const property = await Property.create(propertyData);
 
@@ -622,16 +638,16 @@ export const approvePropertyRequest = async (req, res) => {
 
     await User.findByIdAndUpdate(request.postedBy, { $addToSet: { myListings: property._id } });
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "C",
       location: "propertyController.js:approvePropertyRequest",
       message: "property approved",
       data: { propertyId: property._id.toString(), listingType: property.listingType },
     });
-    // #endregion
+   
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:approvePropertyRequest",
@@ -641,37 +657,37 @@ export const approvePropertyRequest = async (req, res) => {
         propertyLocation: JSON.stringify(property.location).substring(0, 300),
       },
     });
-    // #endregion
+   
 
     request.status = "approved";
     await request.save();
 
     await User.findByIdAndUpdate(request.postedBy, { $addToSet: { myListings: property._id } });
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "C",
       location: "propertyController.js:approvePropertyRequest",
       message: "property approved",
       data: { propertyId: property._id.toString(), listingType: property.listingType },
     });
-    // #endregion
+    
 
     res.json({ request, property });
   } catch (err) {
-    // Try to get request for error details (might not exist if error happened before fetch)
+    // Try to get request for error details
     let requestData = null;
     try {
       requestData = await PropertyRequest.findById(req.params.id);
     } catch {}
 
-    // Check indexes again in error case (Hypothesis A)
+    // Check indexes again in error case 
     let errorIndexes = [];
     try {
       errorIndexes = await Property.collection.getIndexes();
     } catch {}
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "A",
       location: "propertyController.js:approvePropertyRequest",
@@ -683,9 +699,9 @@ export const approvePropertyRequest = async (req, res) => {
         geoSpatialIndexDetails: Object.keys(errorIndexes).filter(name => name.includes("2dsphere") || name.includes("geo") || name.includes("coordinates")).map(name => ({ name, definition: JSON.stringify(errorIndexes[name]).substring(0, 200) })),
       },
     });
-    // #endregion
+    
 
-    // #region agent log
+    
     debugLog({
       hypothesisId: "C",
       location: "propertyController.js:approvePropertyRequest",
@@ -705,9 +721,8 @@ export const approvePropertyRequest = async (req, res) => {
         mongoErrorCodeName: err.codeName,
       },
     });
-    // #endregion
-
-    // #region agent log
+    
+    
     debugLog({
       hypothesisId: "E",
       location: "propertyController.js:approvePropertyRequest",
@@ -722,7 +737,7 @@ export const approvePropertyRequest = async (req, res) => {
         errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)).substring(0, 1000),
       },
     });
-    // #endregion
+    
     
     // Handle geospatial errors specifically
     if (err.message?.includes("geo") || err.message?.includes("coordinates") || err.codeName === "CanExtractGeoKeys") {
@@ -797,14 +812,14 @@ export const toggleFavorite = async (req, res) => {
   }
   await user.save();
 
-  // #region agent log
+  
   debugLog({
     hypothesisId: "B",
     location: "propertyController.js:toggleFavorite",
     message: "favorite toggled",
     data: { propertyId, added: !exists },
   });
-  // #endregion
+  
 
   res.json({ favorites: user.favorites, added: !exists });
 };
@@ -951,4 +966,6 @@ export const verifyProperty = async (req, res) => {
     res.status(400).json({ message: err.message || "Failed to verify property" });
   }
 };
+
+
 
