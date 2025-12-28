@@ -47,7 +47,9 @@ const AdminAgents = () => {
       let photoUrl = form.photo;
       if (file) {
         const uploadRes = await uploadFiles([file], "agents", token);
-        photoUrl = uploadRes.data.urls?.[0] || photoUrl;
+        const uploadedUrl = uploadRes.data.urls?.[0];
+        // Extract original URL if it's an object, otherwise use as-is
+        photoUrl = typeof uploadedUrl === 'object' ? uploadedUrl.original : uploadedUrl;
       }
 
       if (editing) {

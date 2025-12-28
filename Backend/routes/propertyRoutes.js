@@ -3,6 +3,7 @@ import {
   approvePropertyRequest,
   createPropertyRequest,
   deleteProperty,
+  deletePropertyRequest,
   getAllProperties,
   getContactInfo,
   getFavorites,
@@ -21,18 +22,11 @@ import {
   verifyProperty,
 } from "../controllers/propertyController.js";
 import { protect, requireAdmin } from "../middleware/authMiddleware.js";
-import multer from "multer";
+import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Configure multer for memory storage (for Cloudinary)
-// Increased limits: 50 MB for photos, 500 MB for videos
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 500 * 1024 * 1024, files: 20 }, // 500 MB max file size
-});
-
-// upload endpoint for Cloudinary
+// upload endpoint for local storage
 router.post("/upload", protect, upload.array("files", 20), uploadToCloudinary);
 // nearby proxy (Overpass)
 router.post("/nearby/overpass", fetchNearbyOverpass);
@@ -44,6 +38,7 @@ router.get("/requests/all", protect, requireAdmin, getPropertyRequests);
 router.get("/all", protect, requireAdmin, getAllProperties);
 router.patch("/requests/:id/approve", protect, requireAdmin, approvePropertyRequest);
 router.patch("/requests/:id/reject", protect, requireAdmin, rejectPropertyRequest);
+router.delete("/requests/:id", protect, requireAdmin, deletePropertyRequest);
 
 // favorites
 router.get("/user/favorites/list", protect, getFavorites);

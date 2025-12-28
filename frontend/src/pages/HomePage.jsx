@@ -38,7 +38,9 @@ const Homepage = () => {
     price: p.price || p.rent || 0,
     listingType: p.listingType || (p.rent ? "rent" : "sale"),
     propertyType: p.propertyType || p.type || "Property",
-    images: (p.images && p.images.length) ? p.images : (p.media?.propertyPhotos || []).map((url) => ({ url })),
+    images: (p.images && p.images.length) ? p.images : (p.media?.propertyPhotos || []).map((url) => ({ 
+      url: typeof url === 'object' ? url.original : url 
+    })),
     location: p.location || p.address || { city: p.city || "", country: p.country || "" },
     bedrooms: p.bedrooms ?? p.bed ?? "-",
     bathrooms: p.bathrooms ?? p.bath ?? "-",

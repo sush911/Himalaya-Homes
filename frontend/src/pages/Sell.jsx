@@ -185,7 +185,8 @@ const Sell = () => {
       const uploadResults = await Promise.all(uploadPromises);
       const uploadedMedia = { lalpurjaPhotos: [], propertyPhotos: [], propertyVideos: [], roadPhotos: [], roadVideos: [] };
       uploadResults.forEach(({ field, urls }) => {
-        uploadedMedia[field] = urls;
+        // Extract just the URLs (handle both object format {original, thumbnail} and plain string format)
+        uploadedMedia[field] = urls.map(url => typeof url === 'object' ? url.original : url);
       });
 
       const payload = {

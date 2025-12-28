@@ -7,7 +7,8 @@ import { useLanguage } from "../context/LanguageContext";
 
 const PropertyCard = ({ property }) => {
   const { t } = useLanguage();
-  const mainImage = property.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300";
+  const firstPhoto = property.media?.propertyPhotos?.[0];
+  const mainImage = (typeof firstPhoto === 'object' ? firstPhoto.original : firstPhoto) || "https://via.placeholder.com/400x300";
 
   return (
     <div className="card h-100 shadow-sm">

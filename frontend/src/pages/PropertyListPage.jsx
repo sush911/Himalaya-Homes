@@ -24,7 +24,8 @@ const CATEGORY_FILTERS = [
 ];
 
 const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
-  const mainImage = item.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300";
+  const firstPhoto = item.media?.propertyPhotos?.[0];
+  const mainImage = (typeof firstPhoto === 'object' ? firstPhoto.original : firstPhoto) || "/placeholder-property.jpg";
   const [isFavorite, setIsFavorite] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -40,7 +41,7 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
   return (
     <div className="property-card-compact">
       <div className="property-image-wrapper-compact">
-        <img src={mainImage} className="property-image-compact" alt={item.title} onError={(e) => (e.target.src = "https://via.placeholder.com/400x300")} />
+        <img src={mainImage} className="property-image-compact" alt={item.title} onError={(e) => (e.target.style.display = "none")} />
         {item.isVerified && (
           <div className="verified-badge-compact">
             <FaCheckCircle size={16} className="verified-icon" />
@@ -238,7 +239,7 @@ const PropertyListPage = ({ listingType }) => {
       
       .properties-grid-compact { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
       
-      .property-card-compact { background: #fff; border: 1px solid ${COLORS.border}; border-radius: 12px; overflow: hidden; transition: all 0.3s ease; height: 100%; display: flex; flex-direction: column; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06); animation: cardFadeIn 0.5s ease; }
+      .property-card-compact { background: #fff; border: 1px solid ${COLORS.border}; border-radius: 12px; overflow: hidden; transition: all 0.3s ease; height: 100%; display: flex; flex-direction: column; box-shadow: 0 2px 6px rgba(95, 86, 86, 0.06); animation: cardFadeIn 0.5s ease; }
       .property-card-compact:hover { transform: translateY(-6px); box-shadow: 0 8px 20px rgba(43, 91, 186, 0.15); border-color: ${COLORS.primary}; }
       
       .property-image-wrapper-compact { position: relative; height: 180px; overflow: hidden; background: ${COLORS.gray}; }
@@ -248,9 +249,12 @@ const PropertyListPage = ({ listingType }) => {
       .verified-badge-compact { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3); animation: badgeSlideIn 0.4s ease; }
       @keyframes badgeSlideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
       
-      .favorite-btn-compact { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(8px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15); }
-      .favorite-btn-compact:hover { transform: scale(1.1); box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); }
+      .favorite-btn-compact { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; background: rgba(60, 60, 60, 0.75); border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(8px); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); }
+      .favorite-btn-compact:hover { transform: scale(1.1); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); background: rgba(80, 80, 80, 0.85); }
       .favorite-btn-compact.animate { animation: heartPulse 0.6s ease; }
+      
+      .favorite-icon { color: #fff; transition: all 0.3s ease; }
+      .favorite-icon.active { color: #ff4444; }
       
       .property-card-body-compact { padding: 14px; display: flex; flex-direction: column; flex: 1; }
       
@@ -333,7 +337,11 @@ const PropertyListPage = ({ listingType }) => {
                 {items.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3).map((n) => (
                   <div className="col-md-4" key={n._id}>
                     <div className="card">
-                      <img src={n.media?.propertyPhotos?.[0] || "https://via.placeholder.com/400x300"} className="card-img-top property-card-image" />
+                      <img 
+                        src={(typeof n.media?.propertyPhotos?.[0] === 'object' ? n.media.propertyPhotos[0].original : n.media?.propertyPhotos?.[0]) || "/placeholder-property.jpg"} 
+                        className="card-img-top property-card-image" 
+                        alt={n.title} 
+                      />
                       <div className="card-body">
                         <h6 className="card-title">{n.title}</h6>
                         <p className="mb-1 small text-muted">Rs {n.price?.toLocaleString()}</p>

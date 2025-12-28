@@ -1,9 +1,25 @@
 import Property from "../models/Property.js";
 import PropertyRequest from "../models/PropertyRequest.js";
 import User from "../models/User.js";
-import cloudinary from "../config/cloudinary.js";
-import { Readable } from "stream";
 import axios from "axios";
+import sharp from "sharp";
+import path from "path";
+import fs from "fs";
+
+// Helper function to convert media URLs from {original, thumbnail} to just original
+const convertToOriginalUrls = (media) => {
+  const converted = {};
+  for (const [key, urls] of Object.entries(media)) {
+    if (Array.isArray(urls)) {
+      converted[key] = urls.map(url => 
+        typeof url === 'object' && url.original ? url.original : url
+      );
+    } else {
+      converted[key] = urls;
+    }
+  }
+  return converted;
+};
 
 
 const debugLog = (payload) => {
@@ -20,278 +36,71 @@ const debugLog = (payload) => {
 };
 
 
-// Upload files to Cloudinary
+// Upload files to local storage
 export const uploadToCloudinary = async (req, res) => {
   try {
-    
-    debugLog({
-      hypothesisId: "E",
-      location: "propertyController.js:uploadToCloudinary",
-      message: "upload started",
-      data: { 
-        fileCount: req.files?.length || 0, 
-        folder: req.body.folder,
-        hasFiles: !!req.files,
-        filesIsArray: Array.isArray(req.files),
-      },
-    });
-    
-
     if (!req.files || req.files.length === 0) {
-      
-      debugLog({
-        hypothesisId: "E",
-        location: "propertyController.js:uploadToCloudinary",
-        message: "no files in request",
-        data: { hasFiles: !!req.files, filesLength: req.files?.length },
-      });
-      
       return res.status(400).json({ message: "No files uploaded" });
     }
 
-    // Check Cloudinary configuration
-    const hasCloudName = !!process.env.CLOUDINARY_CLOUD_NAME;
-    const hasApiKey = !!process.env.CLOUDINARY_API_KEY;
-    const hasApiSecret = !!process.env.CLOUDINARY_API_SECRET;
-    
-    if (!hasCloudName || !hasApiKey || !hasApiSecret) {
-      
-      debugLog({
-        hypothesisId: "E",
-        location: "propertyController.js:uploadToCloudinary",
-        message: "cloudinary config missing",
-        data: {
-          hasCloudName,
-          hasApiKey,
-          hasApiSecret,
-        },
-      });
-      
-      return res.status(500).json({ message: "Cloudinary configuration is missing. Please check environment variables." });
-    }
-
-    // Verify Cloudinary config is loaded
-    
-    debugLog({
-      hypothesisId: "E",
-      location: "propertyController.js:uploadToCloudinary",
-      message: "cloudinary config check",
-      data: {
-        cloudName: process.env.CLOUDINARY_CLOUD_NAME || "missing",
-        apiKeySet: !!process.env.CLOUDINARY_API_KEY,
-        apiSecretSet: !!process.env.CLOUDINARY_API_SECRET,
-        apiKeyLength: process.env.CLOUDINARY_API_KEY?.length || 0,
-        apiSecretLength: process.env.CLOUDINARY_API_SECRET?.length || 0,
-        cloudinaryConfigSet: !!cloudinary.config().cloud_name,
-      },
-    });
-    // #endregion
-    
-    // Verify Cloudinary is actually configured
-    const cloudinaryConfig = cloudinary.config();
-    if (!cloudinaryConfig.cloud_name || !cloudinaryConfig.api_key) {
-      
-      debugLog({
-        hypothesisId: "E",
-        location: "propertyController.js:uploadToCloudinary",
-        message: "cloudinary not configured",
-        data: { cloudinaryConfig },
-      });
-      
-      return res.status(500).json({ message: "Cloudinary is not properly configured. Please check your .env file and restart the server." });
-    }
-
     const folder = req.body.folder || "properties";
-    const uploadPromises = req.files.map((file, index) => {
-      return new Promise((resolve, reject) => {
+    const baseUrl = process.env.BASE_URL || "http://localhost:5000";
+    
+    // Ensure thumbnails folder exists
+    const thumbFolder = `uploads/thumbnails`;
+    if (!fs.existsSync(thumbFolder)) {
+      fs.mkdirSync(thumbFolder, { recursive: true });
+    }
+    
+    const urls = [];
+    
+    for (const file of req.files) {
+      const isImage = file.mimetype?.startsWith("image/");
+      const originalUrl = `${baseUrl}/uploads/properties/${file.filename}`;
+      
+      if (isImage) {
+        // Create thumbnail for images (400px width, maintains aspect ratio)
+        const thumbFilename = `thumb_${file.filename}`;
+        const thumbPath = path.join(thumbFolder, thumbFilename);
+        
         try {
+          await sharp(file.path)
+            .resize(400, null, { 
+              withoutEnlargement: true,
+              fit: 'inside'
+            })
+            .jpeg({ quality: 60, progressive: true })
+            .toFile(thumbPath);
           
-          debugLog({
-            hypothesisId: "E",
-            location: "propertyController.js:uploadToCloudinary",
-            message: "processing file",
-            data: { 
-              index,
-              fileName: file.originalname,
-              mimetype: file.mimetype,
-              size: file.size,
-              hasBuffer: !!file.buffer,
-              bufferType: file.buffer?.constructor?.name,
-            },
+          // Return both original and thumbnail URLs
+          urls.push({
+            original: originalUrl,
+            thumbnail: `${baseUrl}/uploads/thumbnails/${thumbFilename}`
           });
-          
-
-          if (!file.buffer) {
-            reject(new Error(`File ${file.originalname} has no buffer data`));
-            return;
-          }
-
-          // Detect if it's a video by mimetype or extension
-          const isVideo = file.mimetype?.startsWith("video/") || 
-                          [".mp4", ".mov", ".avi", ".mkv", ".webm"].some(ext => 
-                            file.originalname?.toLowerCase().endsWith(ext)
-                          );
-          
-          const uploadOptions = {
-            folder,
-            resource_type: isVideo ? "video" : "image",
-            timeout: 600000, // 10 minutes timeout for large files
-            chunk_size: isVideo ? 6000000 : undefined, // 6MB chunks for videos
-          };
-
-          
-          debugLog({
-            hypothesisId: "E",
-            location: "propertyController.js:uploadToCloudinary",
-            message: "creating upload stream",
-            data: { fileName: file.originalname, isVideo, uploadOptions },
+        } catch (err) {
+          console.error('Thumbnail creation failed:', err);
+          // If thumbnail fails, just use original
+          urls.push({
+            original: originalUrl,
+            thumbnail: originalUrl
           });
-          
-
-          
-          debugLog({
-            hypothesisId: "E",
-            location: "propertyController.js:uploadToCloudinary",
-            message: "attempting cloudinary upload",
-            data: { 
-              fileName: file.originalname,
-              method: "upload_stream",
-              isVideo,
-              bufferSize: file.buffer.length,
-              mimetype: file.mimetype,
-            },
-          });
-          // #endregion
-
-          // Use upload_stream with proper buffer handling
-          const uploadStream = cloudinary.uploader.upload_stream(
-            uploadOptions,
-            (error, result) => {
-              if (error) {
-                
-                debugLog({
-                  hypothesisId: "E",
-                  location: "propertyController.js:uploadToCloudinary",
-                  message: "cloudinary upload error",
-                  data: { 
-                    error: error?.message || String(error),
-                    errorHttpCode: error?.http_code,
-                    errorName: error?.name,
-                    errorStatus: error?.status,
-                    errorCode: error?.code,
-                    fileName: file.originalname,
-                    mimetype: file.mimetype,
-                    size: file.size,
-                    isVideo,
-                    errorString: String(error),
-                    errorJSON: JSON.stringify(error, Object.getOwnPropertyNames(error)).slice(0, 500),
-                  },
-                });
-                // #endregion
-                reject(new Error(`Upload failed for ${file.originalname}: ${error?.message || String(error) || 'Unknown error'}`));
-              } else if (!result) {
-                reject(new Error(`Upload failed for ${file.originalname}: No result from Cloudinary`));
-              } else {
-                
-                debugLog({
-                  hypothesisId: "E",
-                  location: "propertyController.js:uploadToCloudinary",
-                  message: "file uploaded successfully",
-                  data: { fileName: file.originalname, url: result.secure_url, isVideo },
-                });
-                // #endregion
-                resolve(result.secure_url);
-              }
-            }
-          );
-
-          // Pipe buffer to upload stream
-          const bufferStream = Readable.from(file.buffer);
-          bufferStream.pipe(uploadStream);
-          
-          
-          bufferStream.on("error", (streamErr) => {
-            
-            debugLog({
-              hypothesisId: "E",
-              location: "propertyController.js:uploadToCloudinary",
-              message: "buffer stream error",
-              data: { error: streamErr.message, fileName: file.originalname, errorCode: streamErr.code },
-            });
-            
-            reject(new Error(`Stream error for ${file.originalname}: ${streamErr.message}`));
-          });
-          
-          uploadStream.on("error", (uploadErr) => {
-            
-            debugLog({
-              hypothesisId: "E",
-              location: "propertyController.js:uploadToCloudinary",
-              message: "cloudinary stream error",
-              data: { error: uploadErr.message, fileName: file.originalname, errorCode: uploadErr.code },
-            });
-            
-            reject(new Error(`Cloudinary stream error for ${file.originalname}: ${uploadErr.message}`));
-          });
-        } catch (setupError) {
-          
-          debugLog({
-            hypothesisId: "E",
-            location: "propertyController.js:uploadToCloudinary",
-            message: "setup error",
-            data: { 
-              error: setupError.message,
-              fileName: file.originalname,
-              stack: setupError.stack?.substring(0, 300),
-            },
-          });
-          
-          reject(new Error(`Setup error for ${file.originalname}: ${setupError.message}`));
         }
-      });
-    });
+      } else {
+        // For videos, no thumbnail - just return original
+        urls.push({
+          original: originalUrl,
+          thumbnail: originalUrl
+        });
+      }
+    }
 
-    const urls = await Promise.all(uploadPromises);
-    
-    debugLog({
-      hypothesisId: "E",
-      location: "propertyController.js:uploadToCloudinary",
-      message: "upload completed",
-      data: { urlCount: urls.length, urls: urls.slice(0, 3) }, // Log first 3 URLs
-    });
-    
+    console.log(`✅ Uploaded ${urls.length} file(s) to local storage (folder: ${folder})`);
+    console.log('Sample:', urls[0]);
     res.json({ urls });
   } catch (err) {
-    // Capture all possible error information
-    const errorInfo = {
-      message: err?.message || String(err) || "Unknown error",
-      name: err?.name || typeof err,
-      code: err?.code,
-      status: err?.status,
-      statusCode: err?.statusCode,
-      httpCode: err?.http_code,
-      stack: err?.stack?.substring(0, 500),
-      hasCloudinaryConfig: !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY),
-      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ? "set" : "missing",
-      errorString: String(err),
-      errorJSON: JSON.stringify(err, Object.getOwnPropertyNames(err)).substring(0, 500),
-    };
-
-    
-    debugLog({
-      hypothesisId: "E",
-      location: "propertyController.js:uploadToCloudinary",
-      message: "upload failed",
-      data: errorInfo,
-    });
-    
-    
-    console.error("Upload error details:", errorInfo);
-    console.error("Full error object:", err);
-    
+    console.error("Upload error:", err.message);
     res.status(500).json({ 
-      message: errorInfo.message || "Upload failed. Check Cloudinary configuration.",
-      details: process.env.NODE_ENV === "development" ? errorInfo : undefined,
+      message: err.message || "Upload failed",
     });
   }
 };
@@ -598,12 +407,14 @@ export const approvePropertyRequest = async (req, res) => {
       constructionYear: request.constructionYear,
       area: request.area || {},
       amenities: request.amenities || [],
-      media: request.media || {},
+      media: convertToOriginalUrls(request.media || {}),
       nearby: request.nearby || {},
       postedBy: request.postedBy,
       isApproved: true,
       status: "available",
     };
+
+    console.log("📸 Media being saved:", JSON.stringify(propertyData.media, null, 2));
 
     
     debugLog({
@@ -762,6 +573,20 @@ export const rejectPropertyRequest = async (req, res) => {
   request.status = "rejected";
   await request.save();
   res.json(request);
+};
+
+export const deletePropertyRequest = async (req, res) => {
+  try {
+    const request = await PropertyRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+    
+    await PropertyRequest.findByIdAndDelete(req.params.id);
+    console.log(`🗑️ Deleted property request: ${req.params.id}`);
+    
+    res.json({ message: "Property request deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Failed to delete property request" });
+  }
 };
 
 export const listProperties = async (req, res) => {

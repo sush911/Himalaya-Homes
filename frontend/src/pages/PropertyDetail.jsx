@@ -35,13 +35,22 @@ const PropertyDetail = () => {
         
         const images = [];
         if (res.data.media?.propertyPhotos?.length) {
-          images.push(...res.data.media.propertyPhotos.map(url => ({ url, type: "property" })));
+          images.push(...res.data.media.propertyPhotos.map(url => ({ 
+            url: typeof url === 'object' ? url.original : url, 
+            type: "property" 
+          })));
         }
         if (res.data.media?.lalpurjaPhotos?.length) {
-          images.push(...res.data.media.lalpurjaPhotos.map(url => ({ url, type: "lalpurja" })));
+          images.push(...res.data.media.lalpurjaPhotos.map(url => ({ 
+            url: typeof url === 'object' ? url.original : url, 
+            type: "lalpurja" 
+          })));
         }
         if (res.data.media?.roadPhotos?.length) {
-          images.push(...res.data.media.roadPhotos.map(url => ({ url, type: "road" })));
+          images.push(...res.data.media.roadPhotos.map(url => ({ 
+            url: typeof url === 'object' ? url.original : url, 
+            type: "road" 
+          })));
         }
         setGalleryImages(images);
       } catch (err) {
@@ -163,7 +172,7 @@ const PropertyDetail = () => {
     );
   }
 
-  const mainImage = property.media?.propertyPhotos?.[0] || "https://via.placeholder.com/800x600";
+  const mainImage = (typeof property.media?.propertyPhotos?.[0] === 'object' ? property.media.propertyPhotos[0].original : property.media?.propertyPhotos?.[0]) || "https://via.placeholder.com/800x600";
   const coordinates = property.location?.coordinates;
 
   return (
@@ -247,7 +256,7 @@ const PropertyDetail = () => {
                     {property.media?.propertyVideos?.length > 0 ? (
                       property.media.propertyVideos.map((videoUrl, idx) => (
                         <video key={idx} className="video-player" controls>
-                          <source src={videoUrl} type="video/mp4" />
+                          <source src={typeof videoUrl === 'object' ? videoUrl.original : videoUrl} type="video/mp4" />
                           Your browser does not support the video tag.
                         </video>
                       ))
@@ -258,7 +267,7 @@ const PropertyDetail = () => {
                     )}
                     {property.media?.roadVideos?.length > 0 && property.media.roadVideos.map((videoUrl, idx) => (
                       <video key={`road-${idx}`} className="video-player" controls>
-                        <source src={videoUrl} type="video/mp4" />
+                        <source src={typeof videoUrl === 'object' ? videoUrl.original : videoUrl} type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>
                     ))}

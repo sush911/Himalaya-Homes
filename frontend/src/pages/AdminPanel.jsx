@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { fetchPropertyRequests, approveRequest, rejectRequest, deleteProperty } from "../api/property";
+import { fetchPropertyRequests, approveRequest, rejectRequest, deleteProperty, deletePropertyRequest } from "../api/property";
 import { NavLink } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { FiCheckCircle, FiXCircle, FiImage, FiVideo, FiMapPin, FiHome, FiCalendar, FiDollarSign } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiImage, FiVideo, FiMapPin, FiHome, FiCalendar, FiDollarSign, FiTrash2 } from 'react-icons/fi';
 import "../styles/Admin.css";
 import AdminLayout from "../components/AdminLayout";
 import { useLanguage } from "../context/LanguageContext";
@@ -18,17 +18,33 @@ const AdminPanel = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
   const [showDetailedView, setShowDetailedView] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(6); // Start with 6 items
 
   useEffect(() => {
     if (!token) return;
     loadRequests();
   }, [statusFilter, token]);
 
+  // Infinite scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        // Load more when near bottom
+        setVisibleCount(prev => Math.min(prev + 6, requests.length));
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [requests.length]);
+
   const loadRequests = async () => {
     try {
       setLoading(true);
       const res = await fetchPropertyRequests(statusFilter, token);
       setRequests(res.data || []);
+      setVisibleCount(6); // Reset to 6 when filter changes
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to load requests");
     } finally {
@@ -58,6 +74,52 @@ const AdminPanel = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this property request permanently? This cannot be undone.")) return;
+    try {
+      await deletePropertyRequest(id, token);
+      setMessage("deleted");
+      loadRequests();
+      setShowGallery(false);
+      setShowDetailedView(false);
+    } catch (err) {
+      alert(err?.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) {
+      alert("Please select at least one property to delete");
+      return;
+    }
+    if (!confirm(`Delete ${selectedIds.length} property request(s) permanently? This cannot be undone.`)) return;
+    
+    try {
+      await Promise.all(selectedIds.map(id => deletePropertyRequest(id, token)));
+      setMessage("deleted");
+      setSelectedIds([]);
+      loadRequests();
+    } catch (err) {
+      alert(err?.response?.data?.message || "Bulk delete failed");
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === requests.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(requests.map(r => r._id));
+    }
+  };
+
+  const toggleSelect = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(sid => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
@@ -82,6 +144,10 @@ const AdminPanel = () => {
   return (
     <>
       <style>{`
+        html {
+          scroll-behavior: smooth;
+        }
+        
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -102,6 +168,8 @@ const AdminPanel = () => {
           overflow: hidden;
           background: #FFFFFF;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+          content-visibility: auto;
+          contain-intrinsic-size: 0 600px;
         }
         .admin-enhanced-card:hover {
           transform: translateY(-4px);
@@ -242,6 +310,16 @@ const AdminPanel = () => {
           transform: translateY(-2px);
           box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
           background: linear-gradient(135deg, #c82333 0%, #d64554 100%);
+        }
+        .btn-delete {
+          background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+          color: white;
+          box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+        .btn-delete:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+          background: linear-gradient(135deg, #5a6268 0%, #6c757d 100%);
         }
         .btn-view-media {
           background: linear-gradient(135deg, #2B5BBA 0%, #4A7FDB 100%);
@@ -398,6 +476,8 @@ const AdminPanel = () => {
           height: 200px;
           object-fit: cover;
           transition: transform 0.3s ease;
+          position: relative;
+          z-index: 1;
         }
         .media-item:hover img { transform: scale(1.05); }
         .video-container {
@@ -423,6 +503,40 @@ const AdminPanel = () => {
           .action-buttons { flex-direction: column; }
           .filter-buttons { flex-direction: column; }
           .card-image-container { height: 220px; }
+        }
+        
+        /* Skeleton Loading Animation */
+        @keyframes shimmer {
+          0% { background-position: -1000px 0; }
+          100% { background-position: 1000px 0; }
+        }
+        .skeleton-image {
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 1000px 100%;
+          animation: shimmer 2s infinite;
+        }
+        
+        /* Progressive Image Loading */
+        .progressive-image {
+          filter: blur(10px);
+          transition: filter 0.3s ease-out;
+        }
+        .progressive-image.loaded {
+          filter: blur(0);
+        }
+        
+        /* Smooth Scroll */
+        .admin-enhanced-card {
+          will-change: transform;
+        }
+        
+        /* Optimize animations */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
 
@@ -454,13 +568,37 @@ const AdminPanel = () => {
               ✕ Rejected
               {statusFilter === "rejected" && <span className="count-badge">{requests.length}</span>}
             </button>
+            {selectedIds.length > 0 && (
+              <button
+                type="button"
+                className="filter-btn"
+                onClick={handleBulkDelete}
+                style={{ background: 'linear-gradient(135deg, #dc3545 0%, #e85d68 100%)', color: 'white', marginLeft: 'auto' }}
+              >
+                <FiTrash2 size={16} /> Delete Selected ({selectedIds.length})
+              </button>
+            )}
           </div>
         )}
       >
         {message && (
-          <div className={`alert alert-enhanced alert-${message.includes("approved") ? "success" : message.includes("rejected") ? "danger" : "info"} alert-dismissible fade show`} role="alert">
-            <strong>{message.includes("approved") ? "✓ Success!" : message.includes("rejected") ? "✓ Rejected" : "ℹ Info"}</strong> {message}
+          <div className={`alert alert-enhanced alert-${message.includes("approved") ? "success" : message.includes("rejected") ? "danger" : "success"} alert-dismissible fade show`} role="alert">
+            <strong>✓ Success!</strong> {message === "deleted" ? "Property request(s) deleted successfully" : message}
             <button type="button" className="btn-close" onClick={() => setMessage("")}></button>
+          </div>
+        )}
+
+        {requests.length > 0 && (
+          <div style={{ marginBottom: '16px', padding: '12px', background: '#f8f9fa', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <input
+              type="checkbox"
+              checked={selectedIds.length === requests.length}
+              onChange={toggleSelectAll}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <label style={{ margin: 0, cursor: 'pointer', fontWeight: 500 }} onClick={toggleSelectAll}>
+              Select All ({requests.length})
+            </label>
           </div>
         )}
 
@@ -482,17 +620,43 @@ const AdminPanel = () => {
           </div>
         ) : (
           <div className="row g-4">
-            {requests.map((req, index) => (
+            {requests.slice(0, visibleCount).map((req, index) => (
               <div key={req._id} className="col-12 col-xl-6" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="admin-enhanced-card">
+                <div className="admin-enhanced-card" style={{ position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 10 }}>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(req._id)}
+                      onChange={() => toggleSelect(req._id)}
+                      style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
                   <div className="card-image-container">
                     {req.media?.propertyPhotos?.[0] ? (
-                      <img
-                        src={req.media.propertyPhotos[0]}
-                        alt={req.title}
-                        onLoad={(e) => e.target.style.opacity = 1}
-                        style={{ opacity: 0, transition: 'opacity 0.3s' }}
-                      />
+                      <>
+                        {/* Skeleton placeholder */}
+                        <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}></div>
+                        <img
+                          src={typeof req.media.propertyPhotos[0] === 'object' ? req.media.propertyPhotos[0].thumbnail : req.media.propertyPhotos[0]}
+                          alt={req.title}
+                          loading="lazy"
+                          decoding="async"
+                          className="progressive-image"
+                          onLoad={(e) => {
+                            e.target.style.opacity = 1;
+                            e.target.classList.add('loaded');
+                            // Hide skeleton
+                            const skeleton = e.target.previousElementSibling;
+                            if (skeleton) skeleton.style.display = 'none';
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML = '<div class="d-flex align-items-center justify-content-center h-100"><svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="48" width="48" style="color: #ccc;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>';
+                          }}
+                          style={{ opacity: 0, transition: 'opacity 0.3s ease-out' }}
+                        />
+                      </>
                     ) : (
                       <div className="d-flex align-items-center justify-content-center h-100">
                         <FiImage size={48} color="#ccc" />
@@ -582,6 +746,12 @@ const AdminPanel = () => {
                       >
                         <FiImage size={16} /> View Media
                       </button>
+                      <button
+                        className="btn btn-enhanced btn-delete"
+                        onClick={() => handleDelete(req._id)}
+                      >
+                        <FiTrash2 size={16} /> Delete
+                      </button>
                     </div>
 
                     {req.status === "pending" && (
@@ -604,6 +774,18 @@ const AdminPanel = () => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Load More Indicator */}
+        {!loading && requests.length > visibleCount && (
+          <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+            <div className="spinner-border text-primary" role="status" style={{ width: '2rem', height: '2rem' }}>
+              <span className="visually-hidden">Loading more...</span>
+            </div>
+            <p style={{ marginTop: '12px', color: '#666', fontWeight: 500 }}>
+              Showing {visibleCount} of {requests.length} properties
+            </p>
           </div>
         )}
 
@@ -635,12 +817,32 @@ const AdminPanel = () => {
                         <span className="media-count">{selectedRequest.media.propertyPhotos.length}</span>
                       </h6>
                       <div className="media-grid">
-                        {selectedRequest.media.propertyPhotos.map((url, idx) => (
+                        {selectedRequest.media.propertyPhotos.slice(0, 6).map((url, idx) => (
                           <div key={idx} className="media-item">
-                            <img src={url} alt={`Property ${idx + 1}`} />
+                            <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '12px' }}></div>
+                            <img 
+                              src={typeof url === 'object' ? url.thumbnail : url} 
+                              alt={`Property ${idx + 1}`} 
+                              loading="lazy"
+                              className="progressive-image"
+                              onLoad={(e) => {
+                                e.target.classList.add('loaded');
+                                const skeleton = e.target.previousElementSibling;
+                                if (skeleton) skeleton.style.display = 'none';
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                console.error('Failed to load image:', url);
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
+                      {selectedRequest.media.propertyPhotos.length > 6 && (
+                        <div style={{ textAlign: 'center', marginTop: '12px' }}>
+                          <small style={{ color: '#666' }}>Showing 6 of {selectedRequest.media.propertyPhotos.length} photos (limited for performance)</small>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -651,9 +853,24 @@ const AdminPanel = () => {
                         <span className="media-count">{selectedRequest.media.lalpurjaPhotos.length}</span>
                       </h6>
                       <div className="media-grid">
-                        {selectedRequest.media.lalpurjaPhotos.map((url, idx) => (
+                        {selectedRequest.media.lalpurjaPhotos.slice(0, 4).map((url, idx) => (
                           <div key={idx} className="media-item">
-                            <img src={url} alt={`Lalpurja ${idx + 1}`} />
+                            <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '12px' }}></div>
+                            <img 
+                              src={typeof url === 'object' ? url.thumbnail : url} 
+                              alt={`Lalpurja ${idx + 1}`} 
+                              loading="lazy"
+                              className="progressive-image"
+                              onLoad={(e) => {
+                                e.target.classList.add('loaded');
+                                const skeleton = e.target.previousElementSibling;
+                                if (skeleton) skeleton.style.display = 'none';
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                console.error('Failed to load image:', url);
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
@@ -671,8 +888,8 @@ const AdminPanel = () => {
                         {selectedRequest.media.propertyVideos.map((url, idx) => (
                           <div key={idx} className="col-md-6">
                             <div className="video-container">
-                              <video controls className="w-100 rounded" style={{ maxHeight: "400px" }}>
-                                <source src={url} type="video/mp4" />
+                              <video controls preload="none" className="w-100 rounded" style={{ maxHeight: "400px", background: '#000' }}>
+                                <source src={typeof url === 'object' ? url.original : url} type="video/mp4" />
                                 Your browser does not support the video tag.
                               </video>
                             </div>
@@ -689,9 +906,24 @@ const AdminPanel = () => {
                         <span className="media-count">{selectedRequest.media.roadPhotos.length}</span>
                       </h6>
                       <div className="media-grid">
-                        {selectedRequest.media.roadPhotos.map((url, idx) => (
+                        {selectedRequest.media.roadPhotos.slice(0, 6).map((url, idx) => (
                           <div key={idx} className="media-item">
-                            <img src={url} alt={`Road ${idx + 1}`} />
+                            <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '12px' }}></div>
+                            <img 
+                              src={typeof url === 'object' ? url.thumbnail : url} 
+                              alt={`Road ${idx + 1}`} 
+                              loading="lazy"
+                              className="progressive-image"
+                              onLoad={(e) => {
+                                e.target.classList.add('loaded');
+                                const skeleton = e.target.previousElementSibling;
+                                if (skeleton) skeleton.style.display = 'none';
+                              }}
+                              onError={(e) => {
+                                e.target.style.display = 'none';
+                                console.error('Failed to load image:', url);
+                              }}
+                            />
                           </div>
                         ))}
                       </div>
@@ -709,8 +941,8 @@ const AdminPanel = () => {
                         {selectedRequest.media.roadVideos.map((url, idx) => (
                           <div key={idx} className="col-md-6">
                             <div className="video-container">
-                              <video controls className="w-100 rounded" style={{ maxHeight: "400px" }}>
-                                <source src={url} type="video/mp4" />
+                              <video controls preload="none" className="w-100 rounded" style={{ maxHeight: "400px", background: '#000' }}>
+                                <source src={typeof url === 'object' ? url.original : url} type="video/mp4" />
                                 Your browser does not support the video tag.
                               </video>
                             </div>

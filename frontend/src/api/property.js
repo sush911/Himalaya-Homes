@@ -30,6 +30,11 @@ export const rejectRequest = (id, token) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const deletePropertyRequest = (id, token) =>
+  api.delete(`/requests/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const listProperties = (params = {}) => api.get("/", { params });
 export const getPropertyById = (id) => api.get(`/${id}`);
 
