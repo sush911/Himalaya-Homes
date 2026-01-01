@@ -313,6 +313,11 @@ const PropertyDetail = () => {
               >
                 <FaHeart color={isFavorited ? '#ff4444' : '#666'} />
               </button>
+              {property.isVerified && (
+                <div className="verified-badge">
+                  <FaCheckCircle /> Verified
+                </div>
+              )}
               <div className="rating-display">
                 <div className="star-icons">
                   {[1, 2, 3, 4, 5].map(i => (
@@ -325,11 +330,6 @@ const PropertyDetail = () => {
                 </div>
                 <span className="review-count">{property.totalReviews || 0} Reviews</span>
               </div>
-              {property.isVerified && (
-                <div className="verified-badge">
-                  <FaCheckCircle /> Verified
-                </div>
-              )}
               <div className="report-link" onClick={handleReport}>
                 <FaFlag /> Report
               </div>
@@ -346,9 +346,9 @@ const PropertyDetail = () => {
                   <FaRulerCombined className="detail-icon" />
                   <span className="detail-label">Total area</span>
                   <span className="detail-value">
-                    {property.area?.sqft ? `${property.area.sqft} sq ft` : ''}
-                    {property.area?.ana ? (property.area?.sqft ? ` (${property.area.ana} Ana)` : `${property.area.ana} Ana`) : ''}
-                    {property.area?.ropani ? ` ${property.area.ropani} Ropani` : ''}
+                    {property.area?.sqft && `${property.area.sqft} sq ft`}
+                    {property.area?.ana && ` (${property.area.ana} Ana)`}
+                    {property.area?.ropani && ` ${property.area.ropani} Ropani`}
                   </span>
                 </div>
               )}
@@ -403,13 +403,9 @@ const PropertyDetail = () => {
                 </div>
               )}
 
-              {(property.area?.ana) && (
-                <div className="detail-row">
-                  <FaRulerCombined className="detail-icon" />
-                  <span className="detail-label">Total area</span>
-                  <span className="detail-value">{property.area.ana} Ana</span>
-                </div>
-              )}
+              <div className="detail-row">
+                {/* Empty cell for layout */}
+              </div>
 
               <div className="detail-row">
                 {/* Empty cell for layout */}
