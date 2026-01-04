@@ -20,6 +20,7 @@ const AdminPanel = () => {
   const [showDetailedView, setShowDetailedView] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [visibleCount, setVisibleCount] = useState(6); // Start with 6 items
+  const [activeMediaTab, setActiveMediaTab] = useState('property'); // Default to property photos
 
   useEffect(() => {
     if (!token) return;
@@ -741,6 +742,12 @@ const AdminPanel = () => {
                         className="btn btn-enhanced btn-view-media"
                         onClick={() => {
                           setSelectedRequest(req);
+                          // Set default tab to first available media type
+                          if (req.media?.propertyPhotos?.length > 0) setActiveMediaTab('property');
+                          else if (req.media?.lalpurjaPhotos?.length > 0) setActiveMediaTab('lalpurja');
+                          else if (req.media?.roadPhotos?.length > 0) setActiveMediaTab('road');
+                          else if (req.media?.propertyVideos?.length > 0) setActiveMediaTab('propertyVideos');
+                          else if (req.media?.roadVideos?.length > 0) setActiveMediaTab('roadVideos');
                           setShowGallery(true);
                         }}
                       >
@@ -808,16 +815,61 @@ const AdminPanel = () => {
                     onClick={() => setShowGallery(false)}
                   ></button>
                 </div>
+                
+                {/* Tabbed Navigation */}
+                <div style={{ 
+                  display: 'flex', 
+                  borderBottom: '2px solid #E0E0E0',
+                  background: '#F5F5F5',
+                  padding: '0 24px'
+                }}>
+                  {[
+                    { key: 'property', label: 'Property Photos', icon: '🏠', count: selectedRequest.media?.propertyPhotos?.length || 0 },
+                    { key: 'lalpurja', label: 'Lalpurja', icon: '📄', count: selectedRequest.media?.lalpurjaPhotos?.length || 0 },
+                    { key: 'road', label: 'Road Photos', icon: '🛣️', count: selectedRequest.media?.roadPhotos?.length || 0 },
+                    { key: 'propertyVideos', label: 'Property Videos', icon: '🎥', count: selectedRequest.media?.propertyVideos?.length || 0 },
+                    { key: 'roadVideos', label: 'Road Videos', icon: '🎬', count: selectedRequest.media?.roadVideos?.length || 0 }
+                  ].filter(tab => tab.count > 0).map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveMediaTab(tab.key)}
+                      style={{
+                        padding: '16px 20px',
+                        border: 'none',
+                        background: activeMediaTab === tab.key ? 'white' : 'transparent',
+                        borderBottom: activeMediaTab === tab.key ? '3px solid #2B5BBA' : '3px solid transparent',
+                        color: activeMediaTab === tab.key ? '#2B5BBA' : '#666',
+                        fontWeight: activeMediaTab === tab.key ? '700' : '500',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        fontSize: '0.95rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>{tab.icon}</span>
+                      <span>{tab.label}</span>
+                      <span style={{
+                        background: activeMediaTab === tab.key ? '#2B5BBA' : '#ccc',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: '700'
+                      }}>
+                        {tab.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
                 <div className="modal-body" style={{ padding: '24px' }}>
-                  {selectedRequest.media?.propertyPhotos?.length > 0 && (
+                  {/* Property Photos Tab */}
+                  {activeMediaTab === 'property' && selectedRequest.media?.propertyPhotos?.length > 0 && (
                     <div className="media-section">
-                      <h6 className="media-section-title">
-                        <FiImage size={20} />
-                        Property Photos
-                        <span className="media-count">{selectedRequest.media.propertyPhotos.length}</span>
-                      </h6>
                       <div className="media-grid">
-                        {selectedRequest.media.propertyPhotos.slice(0, 6).map((url, idx) => (
+                        {selectedRequest.media.propertyPhotos.map((url, idx) => (
                           <div key={idx} className="media-item">
                             <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '12px' }}></div>
                             <img 
@@ -838,22 +890,14 @@ const AdminPanel = () => {
                           </div>
                         ))}
                       </div>
-                      {selectedRequest.media.propertyPhotos.length > 6 && (
-                        <div style={{ textAlign: 'center', marginTop: '12px' }}>
-                          <small style={{ color: '#666' }}>Showing 6 of {selectedRequest.media.propertyPhotos.length} photos (limited for performance)</small>
-                        </div>
-                      )}
                     </div>
                   )}
 
-                  {selectedRequest.media?.lalpurjaPhotos?.length > 0 && (
+                  {/* Lalpurja Photos Tab */}
+                  {activeMediaTab === 'lalpurja' && selectedRequest.media?.lalpurjaPhotos?.length > 0 && (
                     <div className="media-section">
-                      <h6 className="media-section-title">
-                        📄 Lalpurja Documents
-                        <span className="media-count">{selectedRequest.media.lalpurjaPhotos.length}</span>
-                      </h6>
                       <div className="media-grid">
-                        {selectedRequest.media.lalpurjaPhotos.slice(0, 4).map((url, idx) => (
+                        {selectedRequest.media.lalpurjaPhotos.map((url, idx) => (
                           <div key={idx} className="media-item">
                             <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '12px' }}></div>
                             <img 
@@ -877,36 +921,11 @@ const AdminPanel = () => {
                     </div>
                   )}
 
-                  {selectedRequest.media?.propertyVideos?.length > 0 && (
+                  {/* Road Photos Tab */}
+                  {activeMediaTab === 'road' && selectedRequest.media?.roadPhotos?.length > 0 && (
                     <div className="media-section">
-                      <h6 className="media-section-title">
-                        <FiVideo size={20} />
-                        Property Videos
-                        <span className="media-count">{selectedRequest.media.propertyVideos.length}</span>
-                      </h6>
-                      <div className="row g-3">
-                        {selectedRequest.media.propertyVideos.map((url, idx) => (
-                          <div key={idx} className="col-md-6">
-                            <div className="video-container">
-                              <video controls preload="none" className="w-100 rounded" style={{ maxHeight: "400px", background: '#000' }}>
-                                <source src={typeof url === 'object' ? url.original : url} type="video/mp4" />
-                                Your browser does not support the video tag.
-                              </video>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedRequest.media?.roadPhotos?.length > 0 && (
-                    <div className="media-section">
-                      <h6 className="media-section-title">
-                        🛣️ Road Photos
-                        <span className="media-count">{selectedRequest.media.roadPhotos.length}</span>
-                      </h6>
                       <div className="media-grid">
-                        {selectedRequest.media.roadPhotos.slice(0, 6).map((url, idx) => (
+                        {selectedRequest.media.roadPhotos.map((url, idx) => (
                           <div key={idx} className="media-item">
                             <div className="skeleton-image" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: '12px' }}></div>
                             <img 
@@ -930,13 +949,27 @@ const AdminPanel = () => {
                     </div>
                   )}
 
-                  {selectedRequest.media?.roadVideos?.length > 0 && (
+                  {/* Property Videos Tab */}
+                  {activeMediaTab === 'propertyVideos' && selectedRequest.media?.propertyVideos?.length > 0 && (
                     <div className="media-section">
-                      <h6 className="media-section-title">
-                        <FiVideo size={20} />
-                        Road Videos
-                        <span className="media-count">{selectedRequest.media.roadVideos.length}</span>
-                      </h6>
+                      <div className="row g-3">
+                        {selectedRequest.media.propertyVideos.map((url, idx) => (
+                          <div key={idx} className="col-md-6">
+                            <div className="video-container">
+                              <video controls preload="none" className="w-100 rounded" style={{ maxHeight: "400px", background: '#000' }}>
+                                <source src={typeof url === 'object' ? url.original : url} type="video/mp4" />
+                                Your browser does not support the video tag.
+                              </video>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Road Videos Tab */}
+                  {activeMediaTab === 'roadVideos' && selectedRequest.media?.roadVideos?.length > 0 && (
+                    <div className="media-section">
                       <div className="row g-3">
                         {selectedRequest.media.roadVideos.map((url, idx) => (
                           <div key={idx} className="col-md-6">
@@ -952,13 +985,16 @@ const AdminPanel = () => {
                     </div>
                   )}
 
+                  {/* No Media Message */}
                   {(!selectedRequest.media || 
-                    (!selectedRequest.media.lalpurjaPhotos?.length && 
-                     !selectedRequest.media.propertyPhotos?.length && 
-                     !selectedRequest.media.propertyVideos?.length &&
-                     !selectedRequest.media.roadPhotos?.length &&
-                     !selectedRequest.media.roadVideos?.length)) && (
-                    <div className="alert alert-info">No media files available.</div>
+                    (activeMediaTab === 'property' && !selectedRequest.media.propertyPhotos?.length) ||
+                    (activeMediaTab === 'lalpurja' && !selectedRequest.media.lalpurjaPhotos?.length) ||
+                    (activeMediaTab === 'road' && !selectedRequest.media.roadPhotos?.length) ||
+                    (activeMediaTab === 'propertyVideos' && !selectedRequest.media.propertyVideos?.length) ||
+                    (activeMediaTab === 'roadVideos' && !selectedRequest.media.roadVideos?.length)) && (
+                    <div className="alert alert-info" style={{ marginTop: '20px' }}>
+                      No media files available in this category.
+                    </div>
                   )}
                 </div>
                 <div className="modal-footer" style={{ padding: '16px 24px', background: '#F5F5F5', borderTop: '1px solid #E0E0E0' }}>

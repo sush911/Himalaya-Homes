@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown, FaQuestionCircle, FaEnvelope, FaPhone } from 'react-icons/fa';
 
 const FAQ = () => {
   const { language } = useLanguage();
@@ -55,10 +55,7 @@ const FAQ = () => {
           question: "Is my personal information secure?",
           answer: "Yes, we take security seriously. All data is encrypted and stored securely. Please refer to our Privacy Policy for detailed information about how we handle and protect your data."
         },
-        {
-          question: "What payment methods do you accept?",
-          answer: "We support various payment methods including bank transfers, mobile wallets (Khalti, ESewa), and other digital payment options available in Nepal. Contact details for payment inquiries are provided during the transaction."
-        }
+
       ]
     },
     np: {
@@ -109,10 +106,7 @@ const FAQ = () => {
           question: "के मेरी व्यक्तिगत जानकारी सुरक्षित छ?",
           answer: "हो, हम सुरक्षालाई गम्भीरतापूर्वक लिन्छु। सबै डेटा एन्क्रिप्ट गरिएको र सुरक्षित रुपमा संग्रहीत हुन्छ। हम आपनो डेटा कसरी हेरफेर र संरक्षण गर्छु भन्ने बारे विस्तृत जानकारीको लागि कृपया हमारो गोपनीयता नीति को सन्दर्भ लिनुहोस्।"
         },
-        {
-          question: "तपाई कुन भुक्तानी विधि स्वीकार गर्नुहुन्छ?",
-          answer: "हम विभिन्न भुक्तानी विधिहरु समर्थन गर्छु जिसमे बैंक स्थानान्तरण, मोबाइल वालेट (खलती, ESewa) र नेपालमा उपलब्ध अन्य डिजिटल भुक्तानी विकल्पहरु शामिल हैं। भुक्तानी पूछताछको लागि सम्पर्क विवरण लेनदेनको समय प्रदान गरिन्छ।"
-        }
+
       ]
     }
   };
@@ -124,58 +118,343 @@ const FAQ = () => {
   };
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-2">{currentContent.title}</h1>
-      <p className="text-muted mb-5">{currentContent.subtitle}</p>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            max-height: 0;
+          }
+          to {
+            opacity: 1;
+            max-height: 500px;
+          }
+        }
+        
+        .faq-container {
+          padding: 60px 20px;
+          background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%);
+          min-height: 100vh;
+        }
+        
+        .faq-header {
+          text-align: center;
+          margin-bottom: 50px;
+          animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .faq-icon-wrapper {
+          width: 80px;
+          height: 80px;
+          background: linear-gradient(135deg, #2B5BBA 0%, #1E3A5F 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 24px;
+          box-shadow: 0 8px 24px rgba(43, 91, 186, 0.3);
+          animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
+        }
+        
+        .faq-title {
+          font-size: 42px;
+          font-weight: 800;
+          color: #1E3A5F;
+          margin-bottom: 16px;
+          letter-spacing: -1px;
+        }
+        
+        .faq-subtitle {
+          font-size: 18px;
+          color: #666;
+          font-weight: 500;
+          max-width: 600px;
+          margin: 0 auto;
+        }
+        
+        .faq-card {
+          background: #fff;
+          border: 2px solid #E0E0E0;
+          border-radius: 16px;
+          margin-bottom: 16px;
+          overflow: hidden;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          animation: fadeInUp 0.6s ease-out backwards;
+        }
+        
+        .faq-card:nth-child(1) { animation-delay: 0.1s; }
+        .faq-card:nth-child(2) { animation-delay: 0.15s; }
+        .faq-card:nth-child(3) { animation-delay: 0.2s; }
+        .faq-card:nth-child(4) { animation-delay: 0.25s; }
+        .faq-card:nth-child(5) { animation-delay: 0.3s; }
+        .faq-card:nth-child(6) { animation-delay: 0.35s; }
+        
+        .faq-card:hover {
+          border-color: #2B5BBA;
+          box-shadow: 0 8px 24px rgba(43, 91, 186, 0.15);
+          transform: translateY(-4px);
+        }
+        
+        .faq-card.active {
+          border-color: #2B5BBA;
+          box-shadow: 0 8px 24px rgba(43, 91, 186, 0.2);
+        }
+        
+        .faq-question-btn {
+          width: 100%;
+          text-align: left;
+          padding: 24px 28px;
+          background: #fff;
+          border: none;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          gap: 16px;
+        }
+        
+        .faq-question-btn:hover {
+          background: #F5F5F5;
+        }
+        
+        .faq-question-text {
+          font-size: 17px;
+          font-weight: 700;
+          color: #1E3A5F;
+          margin: 0;
+          line-height: 1.5;
+        }
+        
+        .faq-icon {
+          flex-shrink: 0;
+          width: 36px;
+          height: 36px;
+          background: linear-gradient(135deg, #2B5BBA 0%, #1E3A5F 100%);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          transition: all 0.3s ease;
+        }
+        
+        .faq-card.active .faq-icon {
+          transform: rotate(180deg);
+        }
+        
+        .faq-answer {
+          padding: 0 28px 28px 28px;
+          border-top: 2px solid #F5F5F5;
+          animation: slideDown 0.4s ease-out;
+        }
+        
+        .faq-answer-text {
+          font-size: 15px;
+          color: #333;
+          line-height: 1.8;
+          margin: 20px 0 0 0;
+        }
+        
+        .contact-card {
+          background: linear-gradient(135deg, #2B5BBA 0%, #1E3A5F 100%);
+          border-radius: 20px;
+          padding: 40px;
+          margin-top: 60px;
+          box-shadow: 0 12px 40px rgba(43, 91, 186, 0.3);
+          animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+        
+        .contact-card-title {
+          font-size: 24px;
+          font-weight: 800;
+          color: #fff;
+          margin-bottom: 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        
+        .contact-card-text {
+          font-size: 16px;
+          color: rgba(255, 255, 255, 0.95);
+          margin: 0;
+          line-height: 1.8;
+        }
+        
+        .contact-info-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 24px;
+          margin-top: 24px;
+        }
+        
+        .contact-info-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px 24px;
+          background: rgba(255, 255, 255, 0.15);
+          backdrop-filter: blur(10px);
+          border-radius: 12px;
+          transition: all 0.3s ease;
+        }
+        
+        .contact-info-item:hover {
+          background: rgba(255, 255, 255, 0.25);
+          transform: translateY(-2px);
+        }
+        
+        .contact-icon {
+          width: 40px;
+          height: 40px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          flex-shrink: 0;
+        }
+        
+        .contact-text {
+          font-size: 15px;
+          color: #fff;
+          font-weight: 600;
+          margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+          .faq-container {
+            padding: 40px 16px;
+          }
+          
+          .faq-title {
+            font-size: 32px;
+          }
+          
+          .faq-subtitle {
+            font-size: 16px;
+          }
+          
+          .faq-question-btn {
+            padding: 20px;
+          }
+          
+          .faq-question-text {
+            font-size: 15px;
+          }
+          
+          .faq-answer {
+            padding: 0 20px 20px 20px;
+          }
+          
+          .contact-card {
+            padding: 28px;
+          }
+          
+          .contact-info-row {
+            flex-direction: column;
+          }
+        }
+      `}</style>
+      
+      <div className="faq-container container">
+        <div className="faq-header">
+          <div className="faq-icon-wrapper">
+            <FaQuestionCircle size={40} color="#fff" />
+          </div>
+          <h1 className="faq-title">{currentContent.title}</h1>
+          <p className="faq-subtitle">{currentContent.subtitle}</p>
+        </div>
 
-      <div className="row">
-        <div className="col-lg-8 mx-auto">
-          {currentContent.faqs.map((faq, idx) => (
-            <div key={idx} className="card mb-3 border-0 shadow-sm">
-              <div
-                className="card-header bg-white border-0 p-0"
-                style={{ cursor: 'pointer' }}
-                onClick={() => toggleFAQ(idx)}
-              >
+        <div className="row">
+          <div className="col-lg-8 mx-auto">
+            {currentContent.faqs.map((faq, idx) => (
+              <div key={idx} className={`faq-card ${expandedId === idx ? 'active' : ''}`}>
                 <button
-                  className="btn btn-link text-dark text-decoration-none w-100 text-start p-3 d-flex justify-content-between align-items-center"
+                  className="faq-question-btn"
+                  onClick={() => toggleFAQ(idx)}
                   aria-expanded={expandedId === idx}
                 >
-                  <span className="fw-bold">{faq.question}</span>
-                  <FaChevronDown
-                    style={{
-                      transform: expandedId === idx ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.3s ease',
-                    }}
-                  />
+                  <span className="faq-question-text">{faq.question}</span>
+                  <div className="faq-icon">
+                    <FaChevronDown size={16} />
+                  </div>
                 </button>
+
+                {expandedId === idx && (
+                  <div className="faq-answer">
+                    <p className="faq-answer-text">{faq.answer}</p>
+                  </div>
+                )}
               </div>
-
-              {expandedId === idx && (
-                <div className="card-body border-top">
-                  <p className="mb-0">{faq.answer}</p>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="row mt-5">
-        <div className="col-lg-8 mx-auto">
-          <div className="alert alert-info">
-            <h6 className="mb-2">
-              {language === 'np' ? 'अझै प्रश्न छ?' : 'Still have questions?'}
-            </h6>
-            <p className="mb-0">
-              {language === 'np'
-                ? 'कृपया हामीसँग सम्पर्क गर्नुहोस् - himalayahomes@gmail.com वा 908821321'
-                : 'Please contact us - himalayahomes@gmail.com or 908821321'}
-            </p>
+        <div className="row">
+          <div className="col-lg-8 mx-auto">
+            <div className="contact-card">
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '32px', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1', minWidth: '250px' }}>
+                  <h6 className="contact-card-title">
+                    <FaQuestionCircle size={24} />
+                    {language === 'np' ? 'अझै प्रश्न छ?' : 'Still have questions?'}
+                  </h6>
+                  <p className="contact-card-text">
+                    {language === 'np'
+                      ? 'कृपया हामीसँग सम्पर्क गर्नुहोस्। हामी तपाईंको सहायता गर्न यहाँ छौं!'
+                      : 'Please contact us. We are here to help you!'}
+                  </p>
+                </div>
+                <div className="contact-info-row" style={{ flex: '1', minWidth: '300px', margin: 0 }}>
+                  <div className="contact-info-item" style={{ flex: 1 }}>
+                    <div className="contact-icon">
+                      <FaEnvelope size={18} />
+                    </div>
+                    <p className="contact-text">himalayahomes@gmail.com</p>
+                  </div>
+                  <div className="contact-info-item" style={{ flex: 1 }}>
+                    <div className="contact-icon">
+                      <FaPhone size={18} />
+                    </div>
+                    <p className="contact-text">908821321</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
