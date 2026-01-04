@@ -411,6 +411,7 @@ export const approvePropertyRequest = async (req, res) => {
       nearby: request.nearby || {},
       postedBy: request.postedBy,
       isApproved: true,
+      isVerified: true, // Automatically verify approved properties
       status: "available",
     };
 

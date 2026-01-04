@@ -5,6 +5,7 @@ import { getContactInfo, listProperties, reportProperty, toggleFavorite } from "
 import { Modal } from "react-bootstrap";
 import AdvancedSearchBar from "../components/AdvancedSearchBar";
 import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaBuilding, FaStar, FaPhone, FaEnvelope, FaUser, FaCheckCircle } from "react-icons/fa";
+import { useLanguage } from "../context/LanguageContext";
 import "../styles/PropertyListPage.css";
 
 const COLORS = {
@@ -154,6 +155,7 @@ const ContactModal = ({ show, onHide, contact }) => (
 );
 
 const PropertyListPage = ({ listingType }) => {
+  const { t } = useLanguage();
   const token = localStorage.getItem("token");
   const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);

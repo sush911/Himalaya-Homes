@@ -85,6 +85,7 @@ function LocationPicker({ value, onChange }) {
 }
 
 const Sell = () => {
+  const { t } = useLanguage();
   const token = localStorage.getItem("token");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
