@@ -105,10 +105,53 @@ export const uploadToCloudinary = async (req, res) => {
   }
 };
 
+// Simple in-memory cache for nearby places (5 minute TTL)
+const nearbyCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Rate limiting: track last request time per IP
+const rateLimitMap = new Map();
+const RATE_LIMIT_DELAY = 2000; // 2 seconds between requests per IP
+
+// Helper: Calculate distance using Haversine formula
+const calculateDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // Distance in km
+};
+
 // Proxy Overpass to avoid browser CORS issues
 export const fetchNearbyOverpass = async (req, res) => {
   const { lat, lng } = req.body;
   if (!lat || !lng) return res.status(400).json({ message: "lat/lng required" });
+  
+  // Create cache key (rounded to 3 decimals to group nearby locations)
+  const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+  
+  // Check cache first
+  const cached = nearbyCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    console.log(`✅ Cache hit for ${cacheKey}`);
+    return res.json(cached.data);
+  }
+  
+  // Rate limiting per IP
+  const clientIp = req.ip || req.connection.remoteAddress;
+  const lastRequest = rateLimitMap.get(clientIp);
+  if (lastRequest && Date.now() - lastRequest < RATE_LIMIT_DELAY) {
+    console.log(`⏱️ Rate limit: Please wait ${RATE_LIMIT_DELAY/1000}s between requests`);
+    // Return cached data if available, even if expired
+    if (cached) {
+      return res.json(cached.data);
+    }
+  }
+  rateLimitMap.set(clientIp, Date.now());
   
   const tagGroups = {
     education: ["school", "college", "university"],
@@ -117,48 +160,99 @@ export const fetchNearbyOverpass = async (req, res) => {
   };
 
   try {
-    const fetchGroup = async (tags) => {
+    const fetchGroup = async (tags, groupName, retryCount = 0) => {
+      const maxRetries = 2;
+      // Calculate delay outside try block so it's accessible in catch
+      const delay = 500 * Math.pow(2, retryCount);
+      
+      // Increased radius to 50km (50000 meters) to fetch nearest places regardless of distance
       const query = `
-        [out:json][timeout:25];
+        [out:json][timeout:40];
         (
-          ${tags.map((t) => `node["amenity"="${t}"](around:1200,${lat},${lng});`).join("\n")}
+          ${tags.map((t) => `node["amenity"="${t}"](around:50000,${lat},${lng});`).join("\n")}
         );
         out body;
       `;
       
       try {
+        // Add delay between requests to avoid rate limiting
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        await new Promise(resolve => setTimeout(resolve, delay));
+        
+        console.log(`🔍 Fetching ${groupName} (attempt ${retryCount + 1}/${maxRetries + 1})...`);
+        
         const response = await axios.post("https://overpass-api.de/api/interpreter", query, {
           headers: { "Content-Type": "text/plain" },
-          timeout: 30000, // 30 second timeout
+          timeout: 45000, // 45 second timeout (increased from 30s)
         });
         
         if (!response.data || !response.data.elements) {
-          console.warn("Overpass API returned no elements");
+          console.warn(`⚠️ Overpass API returned no elements for ${groupName}`);
           return [];
         }
         
-        return response.data.elements
-          .map((el) => ({
-            name: el.tags?.name || el.tags?.amenity || "Unknown",
-            type: el.tags?.amenity,
-            distanceKm: el.tags?.distance || 0,
-          }))
-          .slice(0, 3);
+        // Calculate distance for each place and sort by distance
+        const places = response.data.elements
+          .map((el) => {
+            const distance = calculateDistance(lat, lng, el.lat, el.lon);
+            
+            return {
+              name: el.tags?.name || el.tags?.amenity || "Unknown",
+              type: el.tags?.amenity,
+              distanceKm: parseFloat(distance.toFixed(3)),
+            };
+          })
+          .sort((a, b) => a.distanceKm - b.distanceKm) // Sort by distance (nearest first)
+          .slice(0, 5); // Return top 5 nearest places
+        
+        console.log(`✅ Found ${places.length} ${groupName} places (nearest: ${places[0]?.distanceKm || 'N/A'}km)`);
+        return places;
       } catch (apiError) {
-        console.error(`Overpass API error for tags ${tags}:`, apiError.message);
-        return []; // Return empty array on error instead of failing
+        const isTimeout = apiError.code === 'ECONNABORTED' || apiError.response?.status === 504;
+        const isRateLimit = apiError.response?.status === 429;
+        
+        if (isTimeout) {
+          console.error(`⚠️ Timeout for ${groupName} - API overloaded (attempt ${retryCount + 1})`);
+        } else if (isRateLimit) {
+          console.error(`⚠️ Rate limited for ${groupName} - too many requests (attempt ${retryCount + 1})`);
+        } else {
+          console.error(`❌ Overpass API error for ${groupName}:`, apiError.message);
+        }
+        
+        // Retry logic with exponential backoff
+        if (retryCount < maxRetries && (isTimeout || isRateLimit)) {
+          const retryDelay = delay * 2;
+          console.log(`🔄 Retrying ${groupName} in ${retryDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return fetchGroup(tags, groupName, retryCount + 1);
+        }
+        
+        return []; // Return empty array after all retries exhausted
       }
     };
 
-    const [education, food, health] = await Promise.all([
-      fetchGroup(tagGroups.education),
-      fetchGroup(tagGroups.food),
-      fetchGroup(tagGroups.health),
-    ]);
+    // Fetch sequentially to avoid overwhelming the API
+    const education = await fetchGroup(tagGroups.education, "education");
+    const food = await fetchGroup(tagGroups.food, "food");
+    const health = await fetchGroup(tagGroups.health, "health");
 
-    res.json({ education, food, health });
+    const result = { education, food, health };
+    
+    // Cache the result
+    nearbyCache.set(cacheKey, {
+      data: result,
+      timestamp: Date.now()
+    });
+    
+    // Clean old cache entries (keep last 100)
+    if (nearbyCache.size > 100) {
+      const firstKey = nearbyCache.keys().next().value;
+      nearbyCache.delete(firstKey);
+    }
+
+    res.json(result);
   } catch (err) {
-    console.error("Nearby fetch error:", err.message);
+    console.error("❌ Nearby fetch error:", err.message);
     // Return empty results instead of error to allow form submission
     res.json({ education: [], food: [], health: [] });
   }
@@ -627,27 +721,35 @@ export const getPropertyById = async (req, res) => {
 };
 
 export const toggleFavorite = async (req, res) => {
-  const propertyId = req.params.id;
-  const user = await User.findById(req.user._id);
+  try {
+    const propertyId = req.params.id;
+    const user = await User.findById(req.user._id);
 
-  const exists = user.favorites.some((fav) => fav.toString() === propertyId);
-  if (exists) {
-    user.favorites = user.favorites.filter((fav) => fav.toString() !== propertyId);
-  } else {
-    user.favorites.push(propertyId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const exists = user.favorites.some((fav) => fav.toString() === propertyId);
+    if (exists) {
+      user.favorites = user.favorites.filter((fav) => fav.toString() !== propertyId);
+    } else {
+      user.favorites.push(propertyId);
+    }
+    await user.save();
+
+    
+    debugLog({
+      hypothesisId: "B",
+      location: "propertyController.js:toggleFavorite",
+      message: "favorite toggled",
+      data: { propertyId, added: !exists },
+    });
+    
+
+    res.json({ favorites: user.favorites, added: !exists });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to toggle favorite" });
   }
-  await user.save();
-
-  
-  debugLog({
-    hypothesisId: "B",
-    location: "propertyController.js:toggleFavorite",
-    message: "favorite toggled",
-    data: { propertyId, added: !exists },
-  });
-  
-
-  res.json({ favorites: user.favorites, added: !exists });
 };
 
 export const getFavorites = async (req, res) => {
@@ -661,15 +763,19 @@ export const getMyProperties = async (req, res) => {
 };
 
 export const reportProperty = async (req, res) => {
-  const property = await Property.findById(req.params.id);
-  if (!property) return res.status(404).json({ message: "Not found" });
-  const { reason } = req.body;
-  if (!["fraudulent", "suspicious", "scam"].includes(reason)) {
-    return res.status(400).json({ message: "Invalid reason" });
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) return res.status(404).json({ message: "Not found" });
+    const { reason } = req.body;
+    if (!["fraudulent", "suspicious", "scam"].includes(reason)) {
+      return res.status(400).json({ message: "Invalid reason" });
+    }
+    property.reports.push({ reason, user: req.user._id });
+    await property.save();
+    res.json({ message: "Reported", reports: property.reports.length });
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to report property" });
   }
-  property.reports.push({ reason, user: req.user._id });
-  await property.save();
-  res.json({ message: "Reported", reports: property.reports.length });
 };
 
 export const getContactInfo = async (req, res) => {
@@ -710,7 +816,7 @@ export const addReview = async (req, res) => {
   try {
     const { id } = req.params;
     const { rating, comment } = req.body;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: "Rating must be between 1 and 5" });
@@ -723,7 +829,7 @@ export const addReview = async (req, res) => {
 
     // Check if user already reviewed this property
     const existingReview = property.reviews.find(
-      (review) => review.user.toString() === userId
+      (review) => review.user.toString() === userId.toString()
     );
 
     if (existingReview) {
