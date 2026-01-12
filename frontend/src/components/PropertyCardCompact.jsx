@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaStar, FaCheckCircle, FaHeart, FaBuilding, FaPhone } from 'react-icons/fa';
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaStar, FaCheckCircle, FaHeart, FaLayerGroup, FaPhone } from 'react-icons/fa';
 
 const COLORS = {
   primary: "#2B5BBA",
@@ -65,9 +65,10 @@ const PropertyCardCompact = ({ item, onFavorite, onContact, onReport, showAction
         .property-location-compact { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; margin-bottom: 10px; }
         .property-location-compact svg { color: ${COLORS.primary}; }
         
-        .property-features-compact { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; padding: 10px; background: ${COLORS.gray}; border-radius: 8px; }
-        .property-feature-item-compact { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: ${COLORS.text}; }
-        .property-feature-item-compact svg { color: ${COLORS.primary}; font-size: 12px; }
+        .property-features-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding: 12px; background: ${COLORS.gray}; border-radius: 8px; }
+        .property-feature-item-compact { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; color: ${COLORS.text}; padding: 6px; background: #fff; border-radius: 6px; }
+        .property-feature-item-compact svg { color: ${COLORS.primary}; font-size: 16px; }
+        .property-feature-item-compact span { font-size: 14px; font-weight: 700; }
         
         .property-actions-compact { margin-top: auto; display: flex; gap: 6px; padding-top: 12px; border-top: 1px solid ${COLORS.border}; }
         .btn-details-compact { flex: 1; height: 34px; background: ${COLORS.primary}; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
@@ -121,22 +122,22 @@ const PropertyCardCompact = ({ item, onFavorite, onContact, onReport, showAction
             <div className="property-features-compact">
               {item.bedrooms > 0 && (
                 <div className="property-feature-item-compact">
-                  <FaBed /> {item.bedrooms}
+                  <FaBed /> <span>{item.bedrooms}</span>
                 </div>
               )}
               {item.bathrooms > 0 && (
                 <div className="property-feature-item-compact">
-                  <FaBath /> {item.bathrooms}
+                  <FaBath /> <span>{item.bathrooms}</span>
                 </div>
               )}
               {item.floors > 0 && (
                 <div className="property-feature-item-compact">
-                  <FaBuilding /> {item.floors}
+                  <FaLayerGroup /> <span>{item.floors}</span>
                 </div>
               )}
               {item.area && item.area.sqft && (
                 <div className="property-feature-item-compact">
-                  <FaRulerCombined /> {item.area.sqft}
+                  <FaRulerCombined /> <span>{item.area.sqft}</span>
                 </div>
               )}
             </div>

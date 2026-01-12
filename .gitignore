@@ -11,4 +11,12 @@ uploads
 
 backend/uploads/
 
+# Documentation files (keep locally, don't push to GitHub)
+*.md
+*.txt
 
+# But keep important project files
+!README.md
+!package.json
+!package-lock.json
+!frontend/README.md

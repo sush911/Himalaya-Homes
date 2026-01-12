@@ -598,30 +598,12 @@ const AdminContactMessages = () => {
                     )}
 
                     <div className="message-actions">
-                      {msg.status !== "new" && (
-                        <button
-                          className="action-btn action-btn-new"
-                          onClick={() => handleStatusUpdate(msg._id, "new")}
-                        >
-                          Mark New
-                        </button>
-                      )}
-                      {msg.status !== "read" && (
-                        <button
-                          className="action-btn action-btn-read"
-                          onClick={() => handleStatusUpdate(msg._id, "read")}
-                        >
-                          Mark Read
-                        </button>
-                      )}
-                      {msg.status !== "replied" && (
-                        <button
-                          className="action-btn action-btn-replied"
-                          onClick={() => handleStatusUpdate(msg._id, "replied")}
-                        >
-                          Mark Replied
-                        </button>
-                      )}
+                      <button
+                        className="action-btn action-btn-read"
+                        onClick={() => handleStatusUpdate(msg._id, msg.status === "read" ? "new" : "read")}
+                      >
+                        {msg.status === "read" ? "Mark Unseen" : "Mark Seen"}
+                      </button>
                       <button
                         className="action-btn action-btn-delete"
                         onClick={() => handleDelete(msg._id)}

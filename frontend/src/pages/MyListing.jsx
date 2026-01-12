@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyProperties, getMyRequests } from "../api/property";
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaCheckCircle, FaClock, FaTimesCircle, FaBuilding } from "react-icons/fa";
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaCheckCircle, FaClock, FaTimesCircle, FaLayerGroup } from "react-icons/fa";
 import { useLanguage } from "../context/LanguageContext";
 
 const COLORS = {
@@ -51,22 +51,22 @@ const PropertyCard = ({ property, isRequest = false }) => {
         <div className="property-features-compact">
           {property.bedrooms > 0 && (
             <div className="property-feature-item-compact">
-              <FaBed /> {property.bedrooms}
+              <FaBed /> <span>{property.bedrooms}</span>
             </div>
           )}
           {property.bathrooms > 0 && (
             <div className="property-feature-item-compact">
-              <FaBath /> {property.bathrooms}
+              <FaBath /> <span>{property.bathrooms}</span>
             </div>
           )}
           {property.floors > 0 && (
             <div className="property-feature-item-compact">
-              <FaBuilding /> {property.floors}
+              <FaLayerGroup /> <span>{property.floors}</span>
             </div>
           )}
           {property.area && property.area.sqft && (
             <div className="property-feature-item-compact">
-              <FaRulerCombined /> {property.area.sqft}
+              <FaRulerCombined /> <span>{property.area.sqft}</span>
             </div>
           )}
         </div>
@@ -156,9 +156,10 @@ const MyListing = () => {
       .property-title-compact { font-size: 14px; font-weight: 700; color: ${COLORS.text}; margin: 0 0 8px 0; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 36px; }
       .property-location-compact { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; margin-bottom: 10px; }
       .property-location-compact svg { color: ${COLORS.primary}; }
-      .property-features-compact { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; padding: 10px; background: ${COLORS.gray}; border-radius: 8px; }
-      .property-feature-item-compact { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: ${COLORS.text}; }
-      .property-feature-item-compact svg { color: ${COLORS.primary}; font-size: 12px; }
+      .property-features-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding: 12px; background: ${COLORS.gray}; border-radius: 8px; }
+      .property-feature-item-compact { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; color: ${COLORS.text}; padding: 6px; background: #fff; border-radius: 6px; }
+      .property-feature-item-compact svg { color: ${COLORS.primary}; font-size: 16px; }
+      .property-feature-item-compact span { font-size: 14px; font-weight: 700; }
       .property-actions-compact { margin-top: auto; display: flex; gap: 6px; padding-top: 12px; border-top: 1px solid ${COLORS.border}; }
       .btn-details-compact { flex: 1; height: 34px; background: ${COLORS.primary}; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
       .btn-details-compact:hover { background: ${COLORS.dark}; color: #fff; transform: translateY(-1px); }

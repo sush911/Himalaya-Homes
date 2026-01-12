@@ -387,17 +387,17 @@ export default function Agents() {
         <div className="agents-container container">
           <div className="agents-header">
             <div className="agents-header-content">
-              <div className="agents-subtitle">OUR TEAM</div>
-              <h1 className="agents-title">Meet Our Expert Agents</h1>
+              <div className="agents-subtitle">{t('ourTeam')}</div>
+              <h1 className="agents-title">{t('meetOurExperts')}</h1>
               <p className="agents-description">
-                Trusted professionals ready to help you find your dream property with personalized service and expert guidance.
+                {t('trustedProfessionals')}
               </p>
             </div>
             <Link to="/" className="btn-back">
               <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Back Home
+              {t('backHome')}
             </Link>
           </div>
 
@@ -408,14 +408,14 @@ export default function Agents() {
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
               </div>
-              {agents.length} Professional Agent{agents.length !== 1 ? 's' : ''} Available
+              {agents.length} {agents.length === 1 ? t('professionalAgents') : t('professionalAgentsPlural')} {t('available')}
             </div>
           )}
 
           {loading ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p className="loading-text">Loading our amazing agents...</p>
+              <p className="loading-text">{t('loadingAgents')}</p>
             </div>
           ) : agents.length === 0 ? (
             <div className="empty-state">
@@ -424,8 +424,8 @@ export default function Agents() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <h3 className="empty-state-title">No Agents Available</h3>
-              <p className="empty-state-text">Check back soon for our team of professional real estate agents.</p>
+              <h3 className="empty-state-title">{t('noAgentsAvailable')}</h3>
+              <p className="empty-state-text">{t('checkBackSoon')}</p>
             </div>
           ) : (
             <div className="agents-grid">
@@ -443,7 +443,7 @@ export default function Agents() {
 
                     <div className="agent-info">
                       <h3 className="agent-name">{a.name}</h3>
-                      <span className="agent-role">Real Estate Agent</span>
+                      <span className="agent-role">{t('realEstateAgent')}</span>
                       
                       {a.address && (
                         <div className="agent-detail">

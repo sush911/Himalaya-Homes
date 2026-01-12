@@ -24,12 +24,12 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!token) {
-      alert("Please login to contact us");
+      alert(t('pleaseLoginToContact'));
       return;
     }
 
     if (!form.name || !form.email || !form.phone || !form.message) {
-      alert("Please fill all fields");
+      alert(t('pleaseFillAllFields'));
       return;
     }
 
@@ -37,10 +37,10 @@ const Contact = () => {
     setMessage("");
     try {
       await submitContact(form, token);
-      setMessage("Message sent successfully! We'll get back to you soon.");
+      setMessage(t('messageSentSuccess'));
       setForm({ name: "", email: "", phone: "", message: "" });
     } catch (err) {
-      setMessage(err?.response?.data?.message || "Failed to send message. Please try again.");
+      setMessage(err?.response?.data?.message || t('messageSendFailed'));
     } finally {
       setLoading(false);
     }
@@ -124,10 +124,10 @@ const Contact = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h4 className="login-required-title">Please Login to Contact Us</h4>
-            <p className="login-required-text">You need to be logged in to send us a message.</p>
+            <h4 className="login-required-title">{t('pleaseLoginToContact')}</h4>
+            <p className="login-required-text">{t('needToBeLoggedIn')}</p>
             <Link to="/login" className="btn-login">
-              Go to Login
+              {t('goToLogin')}
             </Link>
           </div>
         </div>
@@ -404,10 +404,10 @@ const Contact = () => {
           <div className="contact-card">
             {/* Left - Contact Form */}
             <div className="contact-form-section">
-              <h2 className="contact-form-title">Get in touch</h2>
+              <h2 className="contact-form-title">{t('getInTouch')}</h2>
               
               {message && (
-                <div className={`alert-message ${message.includes("success") ? "alert-success" : "alert-danger"}`}>
+                <div className={`alert-message ${message.includes(t('success')) || message.includes('success') ? "alert-success" : "alert-danger"}`}>
                   {message}
                 </div>
               )}
@@ -418,7 +418,7 @@ const Contact = () => {
                     type="text"
                     name="name"
                     className="form-input-contact"
-                    placeholder="Your name"
+                    placeholder={t('yourName')}
                     value={form.name}
                     onChange={handleChange}
                     required
@@ -430,7 +430,7 @@ const Contact = () => {
                     type="email"
                     name="email"
                     className="form-input-contact"
-                    placeholder="Your mail"
+                    placeholder={t('yourMail')}
                     value={form.email}
                     onChange={handleChange}
                     required
@@ -442,7 +442,7 @@ const Contact = () => {
                     type="tel"
                     name="phone"
                     className="form-input-contact"
-                    placeholder="Your phone"
+                    placeholder={t('yourPhone')}
                     value={form.phone}
                     onChange={handleChange}
                     required
@@ -453,7 +453,7 @@ const Contact = () => {
                   <textarea
                     name="message"
                     className="form-textarea-contact"
-                    placeholder="Your message"
+                    placeholder={t('yourMessage')}
                     value={form.message}
                     onChange={handleChange}
                     required
@@ -465,21 +465,21 @@ const Contact = () => {
                   className="btn-submit-contact"
                   disabled={loading}
                 >
-                  {loading ? "Sending..." : "Send message"}
+                  {loading ? t('sending') : t('sendMessage')}
                 </button>
               </form>
             </div>
 
             {/* Right - Contact Info */}
             <div className="contact-info-section">
-              <h2 className="contact-info-title">Feel free to contact us</h2>
+              <h2 className="contact-info-title">{t('feelFreeToContact')}</h2>
               
               <div className="contact-detail-item">
                 <div className="contact-icon-wrapper">
                   <FaMapMarkerAlt size={20} />
                 </div>
                 <div className="contact-detail-text">
-                  <div className="contact-detail-label">Address</div>
+                  <div className="contact-detail-label">{t('address')}</div>
                   <div className="contact-detail-value">Ward no 2 Thamel, Kathmandu</div>
                 </div>
               </div>
@@ -489,7 +489,7 @@ const Contact = () => {
                   <FaPhone size={18} />
                 </div>
                 <div className="contact-detail-text">
-                  <div className="contact-detail-label">Phone 1</div>
+                  <div className="contact-detail-label">{t('phone1')}</div>
                   <div className="contact-detail-value">908821321</div>
                 </div>
               </div>
@@ -499,7 +499,7 @@ const Contact = () => {
                   <FaPhone size={18} />
                 </div>
                 <div className="contact-detail-text">
-                  <div className="contact-detail-label">Phone 2</div>
+                  <div className="contact-detail-label">{t('phone2')}</div>
                   <div className="contact-detail-value">9821838123</div>
                 </div>
               </div>
@@ -509,7 +509,7 @@ const Contact = () => {
                   <FaEnvelope size={18} />
                 </div>
                 <div className="contact-detail-text">
-                  <div className="contact-detail-label">Email</div>
+                  <div className="contact-detail-label">{t('email')}</div>
                   <div className="contact-detail-value">himalayahomes@gmail.com</div>
                 </div>
               </div>

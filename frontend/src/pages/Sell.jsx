@@ -6,8 +6,8 @@ import { useLanguage } from "../context/LanguageContext";
 
 const propertyTypes = ["house", "building", "apartment", "land"];
 const listingTypes = [
-  { value: "sale", label: "Post for Sell (goes to Buy page after approval)" },
-  { value: "rent", label: "Post for Rent" },
+  { value: "sale", label: "postForSell" },
+  { value: "rent", label: "postForRent" },
 ];
 
 // File size limits (in bytes)
@@ -26,6 +26,7 @@ const formatFileSize = (bytes) => {
 };
 
 const FileInput = ({ label, name, accept, multiple = true, onChange, helper, maxSize, maxCount, selectedCount = 0 }) => {
+  const { t } = useLanguage();
   const isVideo = accept.includes("video");
   const fileSizeLimit = isVideo ? MAX_VIDEO_SIZE : MAX_PHOTO_SIZE;
   const fileSizeLimitDisplay = isVideo ? "500 MB" : "50 MB";
@@ -34,7 +35,7 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
     const files = Array.from(e.target.files || []);
     
     if (maxCount && files.length > maxCount) {
-      alert(`Maximum ${maxCount} file(s) allowed for ${label}`);
+      alert(`${t('maxFilesExceeded')} ${maxCount} ${t('filesAllowed')} ${label}`);
       e.target.value = "";
       return;
     }
@@ -42,7 +43,7 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
     const oversizedFiles = files.filter(file => file.size > fileSizeLimit);
     if (oversizedFiles.length > 0) {
       const fileNames = oversizedFiles.map(f => `${f.name} (${formatFileSize(f.size)})`).join(", ");
-      alert(`The following files exceed the ${fileSizeLimitDisplay} limit:\n${fileNames}\n\nPlease compress or resize them before uploading.`);
+      alert(`${t('fileSizeExceeded')} ${fileSizeLimitDisplay} ${t('limit')}:\n${fileNames}\n\n${t('compressFiles')}`);
       e.target.value = "";
       return;
     }
@@ -58,11 +59,11 @@ const FileInput = ({ label, name, accept, multiple = true, onChange, helper, max
         </svg>
       </div>
       <div className="upload-label">
-        {label} {maxCount && `(${selectedCount}/${maxCount} files)`}
+        {label} {maxCount && `(${selectedCount}/${maxCount})`}
       </div>
-      <div className="upload-helper">Click or drag file to this area to upload</div>
+      <div className="upload-helper">{t('clickOrDrag')}</div>
       <div style={{ fontSize: '12px', color: '#999', marginTop: '8px' }}>
-        Max file size: {fileSizeLimitDisplay}
+        {t('maxFileSize')}: {fileSizeLimitDisplay}
       </div>
       <input
         type="file"
@@ -134,7 +135,7 @@ const Sell = () => {
   };
 
   const fetchNearbyPlaces = async () => {
-    if (!coords) return alert("Drop a pin on the map first.");
+    if (!coords) return alert(t('pleaseDropPin'));
     try {
       const res = await fetchNearby(coords.lat, coords.lng);
       setNearby(res.data);
@@ -146,8 +147,8 @@ const Sell = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) return alert("Please login first.");
-    if (!coords) return alert("Please drop a pin on the map.");
+    if (!token) return alert(t('pleaseLoginFirst'));
+    if (!coords) return alert(t('pleaseDropPin'));
     setLoading(true);
     setMessage("");
     try {
@@ -170,7 +171,7 @@ const Sell = () => {
               }))
               .catch((err) => {
                 console.error(`Upload failed for ${field}:`, err);
-                alert(`Failed to upload ${field}: ${err?.response?.data?.message || err.message}`);
+                alert(`${t('uploadFailed')} ${field}: ${err?.response?.data?.message || err.message}`);
                 throw err;
               })
           );
@@ -178,7 +179,7 @@ const Sell = () => {
       }
 
       if (uploadPromises.length === 0) {
-        alert("Please upload at least one file (Lalpurja photo, property photo, or property video)");
+        alert(t('uploadAtLeastOne'));
         setLoading(false);
         return;
       }
@@ -218,7 +219,7 @@ const Sell = () => {
         media: uploadedMedia,
       };
       await submitPropertyRequest(payload, token);
-      setMessage("Submitted for approval. It also appears in your My Listing.");
+      setMessage(t('submittedForApproval'));
       setMediaFiles({ lalpurjaPhotos: [], propertyPhotos: [], propertyVideos: [], roadPhotos: [], roadVideos: [] });
       setMediaUrls({ lalpurjaPhotos: [], propertyPhotos: [], propertyVideos: [], roadPhotos: [], roadVideos: [] });
       setForm({
@@ -560,9 +561,9 @@ const Sell = () => {
 
       <div className="sell-container">
         <div className="sell-header">
-          <h2 className="sell-title">Fill out Property details</h2>
+          <h2 className="sell-title">{t('fillPropertyDetails')}</h2>
           <p className="sell-subtitle">
-            Fill details, drop a map pin for your property location, upload Lalpurja and property media. Admin will approve before it goes live.
+            {t('fillDetailsDescription')}
           </p>
         </div>
 
@@ -579,7 +580,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
-                      Property Name
+                      {t('propertyName')}
                     </label>
                     <input name="title" value={form.title} onChange={handleChange} className="form-input" required placeholder="Ram home" />
                   </div>
@@ -589,7 +590,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Price
+                      {t('price')}
                     </label>
                     <input name="price" type="number" value={form.price} onChange={handleChange} className="form-input" required placeholder="50000" />
                   </div>
@@ -599,7 +600,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z" />
                       </svg>
-                      Total Area
+                      {t('totalArea')}
                     </label>
                     <input name="areaSqft" type="number" value={form.areaSqft} onChange={handleChange} className="form-input" placeholder="120sq" />
                   </div>
@@ -609,7 +610,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                       </svg>
-                      Bedrooms
+                      {t('bedrooms')}
                     </label>
                     <input name="bedrooms" type="number" value={form.bedrooms} onChange={handleChange} className="form-input" placeholder="8" />
                   </div>
@@ -619,7 +620,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                       </svg>
-                      Floors
+                      {t('floors')}
                     </label>
                     <input name="floors" type="number" value={form.floors} onChange={handleChange} className="form-input" placeholder="7" />
                   </div>
@@ -629,7 +630,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      Bathrooms
+                      {t('bathrooms')}
                     </label>
                     <input name="bathrooms" type="number" value={form.bathrooms} onChange={handleChange} className="form-input" placeholder="4" />
                   </div>
@@ -639,7 +640,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9zm0 16c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 7 15.5 7 14 7.67 14 8.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 7 8.5 7 7 7.67 7 8.5 7.67 10 8.5 10z" />
                       </svg>
-                      Parking
+                      {t('parking')}
                     </label>
                     <input name="parking" type="number" value={form.parking} onChange={handleChange} className="form-input" placeholder="2" />
                   </div>
@@ -649,7 +650,7 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      Construction year
+                      {t('constructionYear')}
                     </label>
                     <input name="constructionYear" type="number" value={form.constructionYear} onChange={handleChange} className="form-input" placeholder="2016" />
                   </div>
@@ -659,42 +660,42 @@ const Sell = () => {
                       <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" />
                       </svg>
-                      Total area (in ana)
+                      {t('totalAreaAna')}
                     </label>
                     <input name="areaAna" type="number" value={form.areaAna} onChange={handleChange} className="form-input" placeholder="5" />
                   </div>
 
                   <div className="form-group-custom form-grid-full">
-                    <label className="input-label">Property Type</label>
+                    <label className="input-label">{t('propertyType')}</label>
                     <select name="propertyType" value={form.propertyType} onChange={handleChange} className="form-input">
-                      {propertyTypes.map((p) => <option key={p} value={p}>{p}</option>)}
+                      {propertyTypes.map((p) => <option key={p} value={p}>{t(p)}</option>)}
                     </select>
                   </div>
 
                   <div className="form-group-custom form-grid-full">
-                    <label className="input-label">Post for</label>
+                    <label className="input-label">{t('postFor')}</label>
                     <select name="listingType" value={form.listingType} onChange={handleChange} className="form-input">
-                      {listingTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      {listingTypes.map((type) => <option key={type.value} value={type.value}>{t(type.label)}</option>)}
                     </select>
                   </div>
 
                   <div className="form-group-custom form-grid-full">
-                    <label className="input-label">Area (Ropani)</label>
+                    <label className="input-label">{t('areaRopani')}</label>
                     <input name="areaRopani" type="number" value={form.areaRopani} onChange={handleChange} className="form-input" placeholder="Ropani" />
                   </div>
 
                   <div className="form-group-custom form-grid-full">
-                    <label className="input-label">Address</label>
+                    <label className="input-label">{t('address')}</label>
                     <input name="address" value={form.address} onChange={handleChange} className="form-input" required placeholder="Enter address" />
                   </div>
 
                   <div className="form-group-custom">
-                    <label className="input-label">City</label>
+                    <label className="input-label">{t('city')}</label>
                     <input name="city" value={form.city} onChange={handleChange} className="form-input" required placeholder="Kathmandu" />
                   </div>
 
                   <div className="form-group-custom">
-                    <label className="input-label">Province</label>
+                    <label className="input-label">{t('state')}</label>
                     <input name="province" value={form.province} onChange={handleChange} className="form-input" placeholder="Bagmati" />
                   </div>
                 </div>
@@ -702,7 +703,7 @@ const Sell = () => {
 
               {/* Description Section */}
               <div className="form-section">
-                <h3 className="section-title">Fill out property description</h3>
+                <h3 className="section-title">{t('fillPropertyDescription')}</h3>
                 <div className="form-group-custom">
                   <textarea 
                     name="description" 
@@ -720,9 +721,9 @@ const Sell = () => {
               {/* Map Section */}
               <div className="map-container">
                 <div className="map-header">
-                  <h3 className="map-title">Point your location on map</h3>
+                  <h3 className="map-title">{t('pointLocation')}</h3>
                   <button type="button" className="btn-fetch" onClick={fetchNearbyPlaces}>
-                    Fetch nearby
+                    {t('fetchNearby')}
                   </button>
                 </div>
                 <div className="map-wrapper">
@@ -734,42 +735,42 @@ const Sell = () => {
                     <LocationPicker value={coords} onChange={setCoords} />
                   </MapContainer>
                 </div>
-                {coords && <div className="coords-display">Selected: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</div>}
+                {coords && <div className="coords-display">{t('selectedCoords')}: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}</div>}
               </div>
 
               {/* Nearby Places */}
               <div className="nearby-container">
-                <h3 className="section-title">Nearby Places</h3>
+                <h3 className="section-title">{t('nearbyPlaces')}</h3>
                 
                 <div className="nearby-section">
-                  <div className="nearby-title">Education</div>
+                  <div className="nearby-title">{t('education')}</div>
                   <ul className="nearby-list">
                     {nearby.education.length > 0 ? (
                       nearby.education.map((n, idx) => <li key={idx} className="nearby-item">{n.name} ({n.type || "edu"})</li>)
                     ) : (
-                      <li className="nearby-item-empty">No data yet</li>
+                      <li className="nearby-item-empty">{t('noDataYet')}</li>
                     )}
                   </ul>
                 </div>
 
                 <div className="nearby-section">
-                  <div className="nearby-title">Food</div>
+                  <div className="nearby-title">{t('food')}</div>
                   <ul className="nearby-list">
                     {nearby.food.length > 0 ? (
                       nearby.food.map((n, idx) => <li key={idx} className="nearby-item">{n.name} ({n.type || "food"})</li>)
                     ) : (
-                      <li className="nearby-item-empty">No data yet</li>
+                      <li className="nearby-item-empty">{t('noDataYet')}</li>
                     )}
                   </ul>
                 </div>
 
                 <div className="nearby-section">
-                  <div className="nearby-title">Health</div>
+                  <div className="nearby-title">{t('health')}</div>
                   <ul className="nearby-list">
                     {nearby.health.length > 0 ? (
                       nearby.health.map((n, idx) => <li key={idx} className="nearby-item">{n.name} ({n.type || "health"})</li>)
                     ) : (
-                      <li className="nearby-item-empty">No data yet</li>
+                      <li className="nearby-item-empty">{t('noDataYet')}</li>
                     )}
                   </ul>
                 </div>
@@ -779,10 +780,10 @@ const Sell = () => {
 
           {/* Upload Media Section - Full Width */}
           <div className="form-section" style={{ marginTop: '24px' }}>
-            <h3 className="section-title">Upload Media</h3>
+            <h3 className="section-title">{t('uploadMedia')}</h3>
             <div className="upload-grid">
               <FileInput 
-                label="Lalpurja Upload" 
+                label={t('lalpurjaUpload')}
                 name="lalpurjaPhotos" 
                 accept="image/*" 
                 multiple={true}
@@ -791,7 +792,7 @@ const Sell = () => {
                 selectedCount={mediaFiles.lalpurjaPhotos.length}
               />
               <FileInput 
-                label="Property Photo Upload" 
+                label={t('propertyPhotoUpload')}
                 name="propertyPhotos" 
                 accept="image/*" 
                 multiple={true}
@@ -800,7 +801,7 @@ const Sell = () => {
                 selectedCount={mediaFiles.propertyPhotos.length}
               />
               <FileInput 
-                label="Property Video Upload" 
+                label={t('propertyVideoUpload')}
                 name="propertyVideos" 
                 accept="video/*" 
                 multiple={true}
@@ -809,7 +810,7 @@ const Sell = () => {
                 selectedCount={mediaFiles.propertyVideos.length}
               />
               <FileInput 
-                label="Property Road Photo Upload" 
+                label={t('roadPhotoUpload')}
                 name="roadPhotos" 
                 accept="image/*" 
                 multiple={true}
@@ -818,7 +819,7 @@ const Sell = () => {
                 selectedCount={mediaFiles.roadPhotos.length}
               />
               <FileInput 
-                label="Property Road Video Upload" 
+                label={t('roadVideoUpload')}
                 name="roadVideos" 
                 accept="video/*" 
                 multiple={true}
@@ -831,7 +832,7 @@ const Sell = () => {
 
           {/* Submit Button */}
           <button className="btn-submit" type="submit" disabled={loading} style={{ marginTop: '24px' }}>
-            {loading ? "Submitting..." : "Upload Property Listing"}
+            {loading ? t('submitting') : t('uploadPropertyListing')}
           </button>
         </form>
       </div>

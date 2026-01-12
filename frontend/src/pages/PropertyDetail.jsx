@@ -7,7 +7,7 @@ import { Modal, Carousel } from "react-bootstrap";
 import { 
   FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaStar, 
   FaCheckCircle, FaPhone, FaEnvelope, FaUser, FaImage, 
-  FaFlag, FaParking, FaBuilding, FaCalendar 
+  FaFlag, FaParking, FaLayerGroup, FaCalendar 
 } from "react-icons/fa";
 import { useLanguage } from "../context/LanguageContext";
 import "../styles/PropertyDetail.css";
@@ -28,6 +28,8 @@ const PropertyDetail = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [activeTab, setActiveTab] = useState('photos');
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState('fraudulent');
 
   useEffect(() => {
     const loadProperty = async () => {
@@ -89,26 +91,13 @@ const PropertyDetail = () => {
 
   const handleReport = async () => {
     if (!token) return alert("Login required");
-    const reason = window.prompt("Select reason:\n1. fraudulent\n2. suspicious\n3. scam\n\nEnter the number (1, 2, or 3):");
-    if (!reason) return;
-    
-    let reportReason;
-    if (reason === "1") reportReason = "fraudulent";
-    else if (reason === "2") reportReason = "suspicious";
-    else if (reason === "3") reportReason = "scam";
-    else {
-      const normalized = reason.toLowerCase().trim();
-      if (["fraudulent", "suspicious", "scam"].includes(normalized)) {
-        reportReason = normalized;
-      } else {
-        alert("Invalid reason. Please use: fraudulent, suspicious, or scam");
-        return;
-      }
-    }
+    if (!reportReason) return alert("Please select a reason");
     
     try {
       await reportProperty(id, reportReason, token);
       alert("Property reported successfully");
+      setShowReportModal(false);
+      setReportReason('fraudulent');
     } catch (err) {
       alert(err?.response?.data?.message || "Failed to report");
     }
@@ -301,7 +290,7 @@ const PropertyDetail = () => {
           {/* Price and Actions Row */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '25px', marginBottom: '25px' }}>
             {/* Left: Price */}
-            <div className="property-price">Rs {property.price?.toLocaleString()} crore</div>
+            <div className="property-price">Rs {property.price?.toLocaleString()}</div>
 
             {/* Right: Actions */}
             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -342,7 +331,7 @@ const PropertyDetail = () => {
                 </div>
                 <span className="review-count">{property.totalReviews || 0} {t('recent')}</span>
               </div>
-              <div className="report-link" onClick={handleReport}>
+              <div className="report-link" onClick={() => setShowReportModal(true)}>
                 <FaFlag /> {t('reportProperty')}
               </div>
             </div>
@@ -367,7 +356,7 @@ const PropertyDetail = () => {
 
               {property.floors > 0 && (
                 <div className="detail-row">
-                  <FaBuilding className="detail-icon" />
+                  <FaLayerGroup className="detail-icon" />
                   <span className="detail-label">Elevator</span>
                   <span className="detail-value">{property.floors}</span>
                 </div>
@@ -375,9 +364,9 @@ const PropertyDetail = () => {
 
               {property.floors > 0 && (
                 <div className="detail-row">
-                  <FaBuilding className="detail-icon" />
-                  <span className="detail-label">Floor</span>
-                  <span className="detail-value">{property.floors}rd</span>
+                  <FaLayerGroup className="detail-icon" />
+                  <span className="detail-label">Floors</span>
+                  <span className="detail-value">{property.floors}</span>
                 </div>
               )}
 
@@ -577,6 +566,134 @@ const PropertyDetail = () => {
               <p style={{ marginTop: '16px', color: '#666', fontWeight: '600' }}>{t('loading')}</p>
             </div>
           )}
+        </Modal.Body>
+      </Modal>
+
+      {/* Report Property Modal */}
+      <Modal show={showReportModal} onHide={() => setShowReportModal(false)} centered>
+        <Modal.Header closeButton style={{ background: '#dc3545', color: 'white', border: 'none' }}>
+          <Modal.Title style={{ fontWeight: '700', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <FaFlag /> {t('reportProperty')}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: '30px' }}>
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
+              Please select a reason for reporting this property:
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                padding: '15px', 
+                background: reportReason === 'fraudulent' ? '#fff5f5' : '#f8f9fa', 
+                border: `2px solid ${reportReason === 'fraudulent' ? '#dc3545' : '#e0e0e0'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}>
+                <input 
+                  type="radio" 
+                  name="reportReason" 
+                  value="fraudulent" 
+                  checked={reportReason === 'fraudulent'}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  style={{ marginRight: '12px', width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px' }}>Fraudulent</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>This property listing appears to be fake or misleading</div>
+                </div>
+              </label>
+
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                padding: '15px', 
+                background: reportReason === 'suspicious' ? '#fff5f5' : '#f8f9fa', 
+                border: `2px solid ${reportReason === 'suspicious' ? '#dc3545' : '#e0e0e0'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}>
+                <input 
+                  type="radio" 
+                  name="reportReason" 
+                  value="suspicious" 
+                  checked={reportReason === 'suspicious'}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  style={{ marginRight: '12px', width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px' }}>Suspicious</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>Something doesn't seem right about this listing</div>
+                </div>
+              </label>
+
+              <label style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                padding: '15px', 
+                background: reportReason === 'scam' ? '#fff5f5' : '#f8f9fa', 
+                border: `2px solid ${reportReason === 'scam' ? '#dc3545' : '#e0e0e0'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}>
+                <input 
+                  type="radio" 
+                  name="reportReason" 
+                  value="scam" 
+                  checked={reportReason === 'scam'}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  style={{ marginRight: '12px', width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px' }}>Scam</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>This is a scam or fraudulent attempt</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+            <button
+              onClick={() => {
+                setShowReportModal(false);
+                setReportReason('fraudulent');
+              }}
+              style={{ 
+                flex: 1,
+                padding: '12px', 
+                background: '#f8f9fa', 
+                color: '#666', 
+                border: '1px solid #e0e0e0', 
+                borderRadius: '8px', 
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleReport}
+              style={{ 
+                flex: 1,
+                padding: '12px', 
+                background: '#dc3545', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '8px', 
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Submit Report
+            </button>
+          </div>
         </Modal.Body>
       </Modal>
 

@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { getContactInfo, listProperties, reportProperty, toggleFavorite } from "../api/property";
 import { Modal } from "react-bootstrap";
 import AdvancedSearchBar from "../components/AdvancedSearchBar";
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaBuilding, FaStar, FaPhone, FaEnvelope, FaUser, FaCheckCircle } from "react-icons/fa";
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaHeart, FaBuilding, FaStar, FaPhone, FaEnvelope, FaUser, FaCheckCircle, FaCar, FaCalendarAlt, FaHome, FaLayerGroup } from "react-icons/fa";
 import { useLanguage } from "../context/LanguageContext";
 import "../styles/PropertyListPage.css";
 
@@ -17,14 +17,15 @@ const COLORS = {
 };
 
 const CATEGORY_FILTERS = [
-  { label: "All", value: "" },
-  { label: "House", value: "house" },
-  { label: "Land", value: "land" },
-  { label: "Apartment", value: "apartment" },
-  { label: "Building", value: "building" },
+  { label: "allTypes", value: "" },
+  { label: "house", value: "house" },
+  { label: "land", value: "land" },
+  { label: "apartment", value: "apartment" },
+  { label: "commercial", value: "building" },
 ];
 
 const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
+  const { t } = useLanguage();
   const firstPhoto = item.media?.propertyPhotos?.[0];
   const mainImage = (typeof firstPhoto === 'object' ? firstPhoto.original : firstPhoto) || "/placeholder-property.jpg";
   const [isFavorite, setIsFavorite] = useState(false);
@@ -46,7 +47,7 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
         {item.isVerified && (
           <div className="verified-badge-compact">
             <FaCheckCircle size={16} className="verified-icon" />
-            Verified
+            {t('verified')}
           </div>
         )}
         <button className={`favorite-btn-compact ${isAnimating ? 'animate' : ''}`} onClick={handleFavoriteClick}>
@@ -66,7 +67,7 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
               </span>
             </>
           ) : (
-            <span className="no-rating-text">No ratings</span>
+            <span className="no-rating-text">{t('noReviews')}</span>
           )}
         </div>
 
@@ -82,40 +83,42 @@ const PropertyCard = ({ item, onFavorite, onReport, onContact }) => {
         <div className="property-features-compact">
           {item.bedrooms > 0 && (
             <div className="property-feature-item-compact">
-              <FaBed /> {item.bedrooms}
+              <FaBed /> <span>{item.bedrooms}</span>
             </div>
           )}
           {item.bathrooms > 0 && (
             <div className="property-feature-item-compact">
-              <FaBath /> {item.bathrooms}
+              <FaBath /> <span>{item.bathrooms}</span>
             </div>
           )}
           {item.floors > 0 && (
             <div className="property-feature-item-compact">
-              <FaBuilding /> {item.floors}
+              <FaLayerGroup /> <span>{item.floors}</span>
             </div>
           )}
           {item.area && item.area.sqft && (
             <div className="property-feature-item-compact">
-              <FaRulerCombined /> {item.area.sqft}
+              <FaRulerCombined /> <span>{item.area.sqft}</span>
             </div>
           )}
         </div>
 
         <div className="property-actions-compact">
-          <Link to={`/property/${item._id}`} className="btn-details-compact">View Details</Link>
-          <button className="btn-icon-compact" onClick={() => onContact(item._id)} title="Contact"><FaPhone size={12} /></button>
-          <button className="btn-icon-compact btn-report-compact" onClick={() => onReport(item._id)} title="Report">⚠️</button>
+          <Link to={`/property/${item._id}`} className="btn-details-compact">{t('viewDetails')}</Link>
+          <button className="btn-icon-compact" onClick={() => onContact(item._id)} title={t('contact')}><FaPhone size={12} /></button>
+          <button className="btn-icon-compact btn-report-compact" onClick={() => onReport(item._id)} title={t('reportProperty')}>⚠️</button>
         </div>
       </div>
     </div>
   );
 };
 
-const ContactModal = ({ show, onHide, contact }) => (
+const ContactModal = ({ show, onHide, contact }) => {
+  const { t } = useLanguage();
+  return (
   <Modal show={show} onHide={onHide} centered className="modal-enhanced">
     <Modal.Header closeButton>
-      <Modal.Title><FaUser /> Owner Details</Modal.Title>
+      <Modal.Title><FaUser /> {t('ownerDetails')}</Modal.Title>
     </Modal.Header>
     <Modal.Body>
       {contact ? (
@@ -123,21 +126,21 @@ const ContactModal = ({ show, onHide, contact }) => (
           <div className="contact-info-item">
             <div className="contact-icon-wrapper"><FaUser size={20} /></div>
             <div className="contact-info-text">
-              <div className="contact-info-label">Name</div>
+              <div className="contact-info-label">{t('ownerName')}</div>
               <div className="contact-info-value">{contact.name}</div>
             </div>
           </div>
           <div className="contact-info-item">
             <div className="contact-icon-wrapper"><FaEnvelope size={20} /></div>
             <div className="contact-info-text">
-              <div className="contact-info-label">Email</div>
+              <div className="contact-info-label">{t('ownerEmail')}</div>
               <div className="contact-info-value">{contact.email}</div>
             </div>
           </div>
           <div className="contact-info-item">
             <div className="contact-icon-wrapper"><FaPhone size={20} /></div>
             <div className="contact-info-text">
-              <div className="contact-info-label">Phone</div>
+              <div className="contact-info-label">{t('ownerPhone')}</div>
               <div className="contact-info-value">{contact.phone}</div>
             </div>
           </div>
@@ -145,14 +148,15 @@ const ContactModal = ({ show, onHide, contact }) => (
       ) : (
         <div className="loading-container">
           <div className="spinner-border loading-spinner" role="status">
-            <span className="visually-hidden">Loading...</span>
+            <span className="visually-hidden">{t('loading')}</span>
           </div>
-          <p className="loading-text">Loading contact information...</p>
+          <p className="loading-text">{t('loading')}</p>
         </div>
       )}
     </Modal.Body>
   </Modal>
-);
+  );
+};
 
 const PropertyListPage = ({ listingType }) => {
   const { t } = useLanguage();
@@ -162,6 +166,8 @@ const PropertyListPage = ({ listingType }) => {
   const [loading, setLoading] = useState(true);
   const [contactInfo, setContactInfo] = useState(null);
   const [showContact, setShowContact] = useState(false);
+  const [showFavoriteModal, setShowFavoriteModal] = useState(false);
+  const [favoriteMessage, setFavoriteMessage] = useState("");
   const [filters, setFilters] = useState({ propertyType: "", location: "", priceMin: "", priceMax: "", search: "" });
   const locationHook = useLocation();
 
@@ -204,9 +210,25 @@ const PropertyListPage = ({ listingType }) => {
   }, [filters.priceMin, filters.priceMax, items]);
 
   const handleSearch = (searchFilters) => { setFilters({ ...filters, ...searchFilters }); };
-  const handleFavorite = async (id) => { if (!token) return alert("Login required"); try { await toggleFavorite(id, token); alert("Updated saved property"); } catch (err) { alert(err?.response?.data?.message || "Failed to update favorite"); } };
-  const handleReport = async (id) => { if (!token) return alert("Login required"); const reason = window.prompt("Select reason:\n1. fraudulent\n2. suspicious\n3. scam\n\nEnter the number (1, 2, or 3):"); if (!reason) return; let reportReason; if (reason === "1") reportReason = "fraudulent"; else if (reason === "2") reportReason = "suspicious"; else if (reason === "3") reportReason = "scam"; else { const normalized = reason.toLowerCase().trim(); if (["fraudulent", "suspicious", "scam"].includes(normalized)) { reportReason = normalized; } else { alert("Invalid reason. Please use: fraudulent, suspicious, or scam"); return; } } try { await reportProperty(id, reportReason, token); alert("Property reported successfully"); } catch (err) { alert(err?.response?.data?.message || "Failed to report"); } };
-  const handleContact = async (id) => { if (!token) return alert("Login required"); try { const res = await getContactInfo(id, token); setContactInfo(res.data); setShowContact(true); } catch (err) { alert(err?.response?.data?.message || "Failed to get contact info"); } };
+  
+  const handleFavorite = async (id) => { 
+    if (!token) {
+      setFavoriteMessage(t('loginRequired'));
+      setShowFavoriteModal(true);
+      return;
+    }
+    try { 
+      const response = await toggleFavorite(id, token);
+      setFavoriteMessage(response.data.added ? t('addedToFavorites') : t('removedFromFavorites'));
+      setShowFavoriteModal(true);
+    } catch (err) { 
+      setFavoriteMessage(err?.response?.data?.message || t('failed'));
+      setShowFavoriteModal(true);
+    } 
+  };
+  
+  const handleReport = async (id) => { if (!token) return alert(t('loginRequired')); const reason = window.prompt("Select reason:\n1. fraudulent\n2. suspicious\n3. scam\n\nEnter the number (1, 2, or 3):"); if (!reason) return; let reportReason; if (reason === "1") reportReason = "fraudulent"; else if (reason === "2") reportReason = "suspicious"; else if (reason === "3") reportReason = "scam"; else { const normalized = reason.toLowerCase().trim(); if (["fraudulent", "suspicious", "scam"].includes(normalized)) { reportReason = normalized; } else { alert("Invalid reason. Please use: fraudulent, suspicious, or scam"); return; } } try { await reportProperty(id, reportReason, token); alert(t('success')); } catch (err) { alert(err?.response?.data?.message || t('failed')); } };
+  const handleContact = async (id) => { if (!token) return alert(t('loginRequired')); try { const res = await getContactInfo(id, token); setContactInfo(res.data); setShowContact(true); } catch (err) { alert(err?.response?.data?.message || t('failed')); } };
   const activeCategory = useMemo(() => filters.propertyType || "", [filters.propertyType]);
   const handleCategorySelect = (value) => { setFilters((prev) => ({ ...prev, propertyType: value })); };
 
@@ -269,9 +291,10 @@ const PropertyListPage = ({ listingType }) => {
       .property-location-compact { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #666; margin-bottom: 10px; }
       .property-location-compact svg { color: ${COLORS.primary}; }
       
-      .property-features-compact { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; padding: 10px; background: ${COLORS.gray}; border-radius: 8px; }
-      .property-feature-item-compact { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: ${COLORS.text}; }
-      .property-feature-item-compact svg { color: ${COLORS.primary}; font-size: 12px; }
+      .property-features-compact { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding: 12px; background: ${COLORS.gray}; border-radius: 8px; }
+      .property-feature-item-compact { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; color: ${COLORS.text}; padding: 6px; background: #fff; border-radius: 6px; }
+      .property-feature-item-compact svg { color: ${COLORS.primary}; font-size: 16px; }
+      .property-feature-item-compact span { font-size: 14px; font-weight: 700; }
       
       .property-actions-compact { margin-top: auto; display: flex; gap: 6px; padding-top: 12px; border-top: 1px solid ${COLORS.border}; }
       .btn-details-compact { flex: 1; height: 34px; background: ${COLORS.primary}; color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
@@ -306,13 +329,13 @@ const PropertyListPage = ({ listingType }) => {
     
     <div className="property-list-page-compact container">
       <div className="page-top-compact">
-        <h2 className="page-title-compact">Latest Properties</h2>
-        <span className="results-badge-compact">Showing {filteredItems.length} listings</span>
+        <h2 className="page-title-compact">{t('latestProperties')}</h2>
+        <span className="results-badge-compact">{filteredItems.length} {t('properties')}</span>
       </div>
       
       <div className="filter-pills-compact">
         {CATEGORY_FILTERS.map((cat) => (
-          <button key={cat.value || "all"} className={`pill-btn-compact ${activeCategory === cat.value ? "active" : ""}`} onClick={() => handleCategorySelect(cat.value)}>{cat.label}</button>
+          <button key={cat.value || "all"} className={`pill-btn-compact ${activeCategory === cat.value ? "active" : ""}`} onClick={() => handleCategorySelect(cat.value)}>{t(cat.label)}</button>
         ))}
       </div>
       
@@ -323,18 +346,18 @@ const PropertyListPage = ({ listingType }) => {
       {loading ? (
         <div className="loading-area-compact">
           <div className="spinner-compact"></div>
-          <p className="loading-properties-text">Loading properties...</p>
+          <p className="loading-properties-text">{t('loadingProperties')}</p>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="empty-state-compact">
-          <h5>No properties found</h5>
-          <p>Try adjusting your search filters.</p>
+          <h5>{t('noPropertiesFound')}</h5>
+          <p>{t('tryAdjustingFilters')}</p>
         </div>
       ) : (
         <>
           {locationHook.pathname === "/" && items && items.length > 0 && (
             <div className="mb-4">
-              <h5>New Arrivals</h5>
+              <h5>{t('newArrivals')}</h5>
               <div className="row g-3 mb-3">
                 {items.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3).map((n) => (
                   <div className="col-md-4" key={n._id}>
@@ -347,7 +370,7 @@ const PropertyListPage = ({ listingType }) => {
                       <div className="card-body">
                         <h6 className="card-title">{n.title}</h6>
                         <p className="mb-1 small text-muted">Rs {n.price?.toLocaleString()}</p>
-                        <a className="btn btn-sm btn-primary" href={`/property/${n._id}`}>View</a>
+                        <a className="btn btn-sm btn-primary" href={`/property/${n._id}`}>{t('viewDetails')}</a>
                       </div>
                     </div>
                   </div>
@@ -356,7 +379,7 @@ const PropertyListPage = ({ listingType }) => {
             </div>
           )}
           
-          <p className="results-info-compact">Found {filteredItems.length} property(ies)</p>
+          <p className="results-info-compact">{filteredItems.length} {t('properties')}</p>
           <div className="properties-grid-compact">
             {filteredItems.map((item) => (
               <PropertyCard key={item._id} item={item} onFavorite={handleFavorite} onReport={handleReport} onContact={handleContact} />
@@ -366,6 +389,34 @@ const PropertyListPage = ({ listingType }) => {
       )}
       
       <ContactModal show={showContact} onHide={() => setShowContact(false)} contact={contactInfo} />
+      
+      <Modal show={showFavoriteModal} onHide={() => setShowFavoriteModal(false)} centered className="modal-enhanced">
+        <Modal.Header closeButton style={{ background: COLORS.primary, color: '#fff', border: 'none' }}>
+          <Modal.Title style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <FaHeart /> {t('savedProperty')}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: '24px', textAlign: 'center' }}>
+          <div style={{ fontSize: '16px', color: COLORS.text, marginBottom: '20px' }}>
+            {favoriteMessage}
+          </div>
+          <button 
+            onClick={() => setShowFavoriteModal(false)}
+            style={{
+              background: COLORS.primary,
+              color: '#fff',
+              border: 'none',
+              padding: '10px 30px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            {t('ok') || 'OK'}
+          </button>
+        </Modal.Body>
+      </Modal>
     </div>
   </>);
 };
